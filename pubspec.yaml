@@ -1,0 +1,29 @@
+name: gardenmate
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: '>=3.2.6 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  firebase_core: ^2.22.0
+  firebase_auth: ^4.14.0
+  google_sign_in: ^6.1.6
+  cloud_firestore: ^4.13.1
+  the_apple_sign_in: ^1.1.1
+
+flutter:
+  uses-material-design: true
+  assets: 
+    - assets/Logo.png
+    - assets/google.png
+    - assets/apple1.png
+  

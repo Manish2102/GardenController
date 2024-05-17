@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "266914060277",
+    "project_id": "gardenmate-8a071",
+    "storage_bucket": "gardenmate-8a071.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:266914060277:android:c643bdd5f139b5f0a472bc",
+        "android_client_info": {
+          "package_name": "com.example.gardenmate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOAzqnGn8C5toxv5aYRaIb-MZ8FhBlI8E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
