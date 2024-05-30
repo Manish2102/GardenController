@@ -7,8 +7,19 @@ environment:
   sdk: '>=3.2.6 <4.0.0'
 
 dependencies:
+  android_intent_plus: ^5.0.2
+  cloud_firestore: ^4.15.8
+  device_info_plus: ^9.1.2
+  firebase_database: ^10.4.9
   flutter:
     sdk: flutter
+  flutter_blue: ^0.8.0
+  intl_phone_number_input: ^0.7.4
+  permission_handler: ^11.3.1
+  qr_code_scanner: ^1.0.1
+  shared_preferences: ^2.2.3
+  sign_in_with_apple: ^5.0.0
+  url_launcher: ^6.2.6
 
 dev_dependencies:
   flutter_test:
@@ -17,7 +28,6 @@ dev_dependencies:
   firebase_core: ^2.22.0
   firebase_auth: ^4.14.0
   google_sign_in: ^6.1.6
-  cloud_firestore: ^4.13.1
   the_apple_sign_in: ^1.1.1
 
 flutter:

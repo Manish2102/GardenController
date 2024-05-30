@@ -1,25 +1,33 @@
-import 'package:firebase_core_platform_interface/firebase_core_platform_interface.dart';
 import 'package:flutter/material.dart';
+import 'package:gardenmate/Device_Screens/GC1Screen.dart';
+import 'package:gardenmate/Device_Screens/GC1_Monitor.dart';
+import 'package:gardenmate/Device_Screens/GC1_Program.dart';
+import 'package:gardenmate/Pages/Activity_Page.dart';
+import 'package:gardenmate/Pages/ForgotPassword.dart';
+import 'package:gardenmate/Pages/Home.dart';
+import 'package:gardenmate/Pages/Login_Page.dart';
+import 'package:gardenmate/Pages/Notification_Page.dart';
+import 'package:gardenmate/Pages/SignUP_Page.dart';
 import 'package:gardenmate/Pages/Splash_Page.dart';
 import 'package:gardenmate/Values/App_Routes.dart';
-import 'package:gardenmate/firebase_options.dart';
-
+import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
+  await Firebase.initializeApp();
   runApp(GardenControllerApp());
 }
 
-class Firebase {
-  static initializeApp({required FirebaseOptions options}) {}
-}
-
 class GardenControllerApp extends StatelessWidget {
-  const GardenControllerApp({super.key});
+  const GardenControllerApp({Key? key});
+
+  get isMainMotorOn => null;
+
+  get motor1StartTime => null;
+
+  get soilMoisture => null;
+
+  get isRaining => null;
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +37,19 @@ class GardenControllerApp extends StatelessWidget {
       initialRoute: AppRoutes.splashpage,
       routes: {
         AppRoutes.splashpage: (context) => SplashScreen(),
+        AppRoutes.homepage: (context) => ModelsPage(),
+        AppRoutes.forgotpassword: (context) => ForgotPassword(),
+        AppRoutes.loginpage: (context) => LogIn(),
+        AppRoutes.signuppage: (context) => SignUp(),
+        AppRoutes.activitypage: (context) => ActivityPage(),
+        AppRoutes.notificationpage: (context) => NotificationPage(),
+        AppRoutes.gc1screen: (context) => GC1Page(userName: ''),
+        AppRoutes.gc1program: (context) => ProgramSettingsPage(),
+        AppRoutes.gc1monitor: (context) => MonitorPage(
+            isMainMotorOn: isMainMotorOn,
+            motor1StartTime: motor1StartTime,
+            soilMoisture: soilMoisture,
+            isRaining: isRaining),
       },
     );
   }

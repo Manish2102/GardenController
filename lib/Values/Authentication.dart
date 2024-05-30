@@ -1,10 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:gardenmate/Pages/Home.dart';
 import 'package:gardenmate/Values/Database.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:the_apple_sign_in/the_apple_sign_in.dart';
 
 class AuthMethods {
   final FirebaseAuth auth = FirebaseAuth.instance;
@@ -42,12 +40,12 @@ class AuthMethods {
           .addUser(userDetails.uid, userInfoMap)
           .then((value) {
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => Home()));
+            context, MaterialPageRoute(builder: (context) => ModelsPage()));
       });
     }
   }
 
-  Future<User> signInWithApple({List<Scope> scopes = const []}) async {
+  /*Future<User> signInWithApple({List<Scope> scopes = const []}) async {
     final result = await TheAppleSignIn.performRequests(
         [AppleIdRequest(requestedScopes: scopes)]);
     switch (result.status) {
@@ -79,5 +77,5 @@ class AuthMethods {
       default:
         throw UnimplementedError();
     }
-  }
+  }*/
 }

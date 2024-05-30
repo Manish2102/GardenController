@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:gardenmate/Pages/Home.dart';
 import 'package:gardenmate/Pages/Login_Page.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -11,12 +13,23 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Delay navigation to dashboard screen
+    // Check if the user is logged in
     Timer(Duration(seconds: 5), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => LogIn()),
-      );
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // User is signed in
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => ModelsPage()), // Replace with your homepage
+        );
+      } else {
+        // User is not signed in
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LogIn()),
+        );
+      }
     });
   }
 

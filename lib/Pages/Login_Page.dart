@@ -1,12 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:gardenmate/Pages/ForgotPassword.dart';
 import 'package:gardenmate/Pages/Home.dart';
-import 'package:gardenmate/Pages/SignUP_Page.dart';
+import 'package:gardenmate/Pages/SignUp_Page.dart';
 import 'package:gardenmate/Values/Authentication.dart';
 
 class LogIn extends StatefulWidget {
-  const LogIn({super.key});
+  const LogIn({Key? key}) : super(key: key);
 
   @override
   State<LogIn> createState() => _LogInState();
@@ -14,49 +15,142 @@ class LogIn extends StatefulWidget {
 
 class _LogInState extends State<LogIn> {
   String email = "", password = "";
-
-  TextEditingController mailcontroller = new TextEditingController();
-  TextEditingController passwordcontroller = new TextEditingController();
-
+  TextEditingController mailcontroller = TextEditingController();
+  TextEditingController passwordcontroller = TextEditingController();
   final _formkey = GlobalKey<FormState>();
 
-  userLogin() async {
+  // Function to handle user login and verification
+  Future<void> userLogin() async {
     try {
-      await FirebaseAuth.instance
+      UserCredential userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
-      Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'user-not-found') {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+
+      // After successful login, fetch user details from Firestore
+      User? user = userCredential.user;
+      if (user != null) {
+        DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+            .instance
+            .collection(
+                "Users") // Ensure this matches your Firestore collection name
+            .doc(user.uid)
+            .get();
+
+        if (snapshot.exists) {
+          // Check if email in Firestore matches the email entered during login
+          Map<String, dynamic> userData = snapshot.data()!;
+          print(
+              "Firestore Data: $userData"); // Log Firestore data for debugging
+          if (userData['email'] == email) {
+            // Email verified, proceed to home page
+            print("User Name: ${userData['name']}");
+            print("User Email: ${userData['email']}");
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => ModelsPage()));
+          } else {
+            // Email mismatch, handle error
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              backgroundColor: Colors.orangeAccent,
+              content: Text(
+                "Email mismatch! User not found in Firestore.",
+                style: TextStyle(fontSize: 18.0),
+              ),
+            ));
+          }
+        } else {
+          // User document not found, handle error
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             backgroundColor: Colors.orangeAccent,
             content: Text(
-              "No User Found for that Email",
+              "User document not found in Firestore.",
               style: TextStyle(fontSize: 18.0),
-            )));
-      } else if (e.code == 'wrong-password') {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            backgroundColor: Colors.orangeAccent,
-            content: Text(
-              "Wrong Password Provided by User",
-              style: TextStyle(fontSize: 18.0),
-            )));
+            ),
+          ));
+        }
       }
+    } on FirebaseAuthException catch (e) {
+      handleFirebaseAuthException(e); // Call helper function to handle errors
+    } catch (error) {
+      print("Error during user login: $error");
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: Color.fromARGB(255, 0, 0, 0),
+        content: Text(
+          "An unexpected error occurred. Please try again.",
+          style: TextStyle(fontSize: 18.0),
+        ),
+      ));
     }
+  }
+
+  // Helper function to handle FirebaseAuthExceptions
+  void handleFirebaseAuthException(FirebaseAuthException e) {
+    if (e.code == 'user-not-found') {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: Colors.orangeAccent,
+        content: Text(
+          "No user found for that email.",
+          style: TextStyle(fontSize: 18.0),
+        ),
+      ));
+    } else if (e.code == 'wrong-password') {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: Colors.orangeAccent,
+        content: Text(
+          "Wrong password provided.",
+          style: TextStyle(fontSize: 18.0),
+        ),
+      ));
+    } else {
+      print("Unhandled FirebaseAuthException: ${e.code}");
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: Color.fromARGB(255, 57, 56, 56),
+        content: Text(
+          "An error occurred during authentication. Please try again.",
+          style: TextStyle(fontSize: 18.0),
+        ),
+      ));
+    }
+  }
+
+  // Test Firestore access to ensure it's working
+  void testFirestoreAccess() async {
+    try {
+      DocumentSnapshot<Map<String, dynamic>> testSnapshot =
+          await FirebaseFirestore.instance
+              .collection(
+                  "Users") // Ensure this matches your Firestore collection name
+              .doc("testUid") // Use a known document ID for testing
+              .get();
+
+      if (testSnapshot.exists) {
+        print("Test Document Data: ${testSnapshot.data()}");
+      } else {
+        print("Test document not found.");
+      }
+    } catch (e) {
+      print("Error during Firestore access test: $e");
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    testFirestoreAccess(); // Test Firestore access on init
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Container(
+      body: SingleChildScrollView(
         child: Column(
           children: [
             Container(
-                width: MediaQuery.of(context).size.width,
-                child: Image.asset(
-                  "assets/Logo.png",
-                  fit: BoxFit.cover,
-                )),
+              width: MediaQuery.of(context).size.width,
+              child: Image.asset(
+                "assets/Logo.png",
+                fit: BoxFit.cover,
+              ),
+            ),
             SizedBox(
               height: 50.0,
             ),
@@ -124,8 +218,8 @@ class _LogInState extends State<LogIn> {
                             email = mailcontroller.text;
                             password = passwordcontroller.text;
                           });
+                          userLogin();
                         }
-                        userLogin();
                       },
                       child: Container(
                           width: MediaQuery.of(context).size.width,
@@ -136,7 +230,7 @@ class _LogInState extends State<LogIn> {
                               borderRadius: BorderRadius.circular(30)),
                           child: Center(
                               child: Text(
-                            "Sign In",
+                            "Log In",
                             style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 22.0,
@@ -177,9 +271,10 @@ class _LogInState extends State<LogIn> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                GestureDetector(
-                  onTap: () {
+                TextButton(
+                  onPressed: () {
                     AuthMethods().signInWithGoogle(context);
+                    // Implement sign in with Google method
                   },
                   child: Image.asset(
                     "assets/google.png",
@@ -188,12 +283,13 @@ class _LogInState extends State<LogIn> {
                     fit: BoxFit.cover,
                   ),
                 ),
-                SizedBox(
+                /*SizedBox(
                   width: 30.0,
                 ),
-                GestureDetector(
-                  onTap: () {
+                TextButton(
+                  onPressed: () {
                     AuthMethods().signInWithApple();
+                    // Implement sign in with Apple method
                   },
                   child: Image.asset(
                     "assets/apple1.png",
@@ -201,7 +297,7 @@ class _LogInState extends State<LogIn> {
                     width: 30,
                     fit: BoxFit.cover,
                   ),
-                )
+                )*/
               ],
             ),
             SizedBox(

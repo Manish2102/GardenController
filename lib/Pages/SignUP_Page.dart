@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:gardenmate/Pages/Home.dart';
 import 'package:gardenmate/Pages/Login_Page.dart';
 
 class SignUp extends StatefulWidget {
@@ -12,27 +12,33 @@ class SignUp extends StatefulWidget {
 
 class _SignUpState extends State<SignUp> {
   String email = "", password = "", name = "";
-  TextEditingController namecontroller = new TextEditingController();
-  TextEditingController passwordcontroller = new TextEditingController();
-  TextEditingController mailcontroller = new TextEditingController();
+  TextEditingController namecontroller = TextEditingController();
+  TextEditingController passwordcontroller = TextEditingController();
+  TextEditingController mailcontroller = TextEditingController();
 
   final _formkey = GlobalKey<FormState>();
 
   registration() async {
-    if (password != null &&
-        namecontroller.text != "" &&
-        mailcontroller.text != "") {
+    if (_formkey.currentState!.validate()) {
       try {
         UserCredential userCredential = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(email: email, password: password);
+        // Save user data to Firestore
+        await FirebaseFirestore.instance
+            .collection("Users")
+            .doc(userCredential.user!.uid)
+            .set({
+          "name": name,
+          "email": email,
+          "Password": password,
+        });
+
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
           "Registered Successfully",
           style: TextStyle(fontSize: 20.0),
         )));
         // ignore: use_build_context_synchronously
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => Home()));
       } on FirebaseAuthException catch (e) {
         if (e.code == 'weak-password') {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -57,9 +63,12 @@ class _SignUpState extends State<SignUp> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Container(
+      body: SingleChildScrollView(
         child: Column(
           children: [
+            SizedBox(
+              height: 50,
+            ),
             Container(
                 width: MediaQuery.of(context).size.width,
                 child: Image.asset(
@@ -91,7 +100,7 @@ class _SignUpState extends State<SignUp> {
                         controller: namecontroller,
                         decoration: InputDecoration(
                             border: InputBorder.none,
-                            prefixIcon: Icon(Icons.man),
+                            prefixIcon: Icon(Icons.person),
                             hintText: "Name",
                             hintStyle: TextStyle(
                                 color: Color(0xFFb2b7bf), fontSize: 18.0)),
@@ -141,7 +150,7 @@ class _SignUpState extends State<SignUp> {
                         controller: passwordcontroller,
                         decoration: InputDecoration(
                             border: InputBorder.none,
-                            prefixIcon: Icon(Icons.password),
+                            prefixIcon: Icon(Icons.lock),
                             hintText: "Password",
                             hintStyle: TextStyle(
                                 color: Color(0xFFb2b7bf), fontSize: 18.0)),
@@ -159,19 +168,19 @@ class _SignUpState extends State<SignUp> {
                             name = namecontroller.text;
                             password = passwordcontroller.text;
                           });
+                          registration();
                         }
-                        registration();
                       },
                       child: Container(
                           width: MediaQuery.of(context).size.width,
                           padding: EdgeInsets.symmetric(
                               vertical: 13.0, horizontal: 30.0),
                           decoration: BoxDecoration(
-                              color: Color(0xFF273671),
+                              color: Color.fromARGB(255, 111, 131, 211),
                               borderRadius: BorderRadius.circular(30)),
                           child: Center(
                               child: Text(
-                            "Sign Up",
+                            "Register",
                             style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 22.0,
@@ -182,7 +191,7 @@ class _SignUpState extends State<SignUp> {
                 ),
               ),
             ),
-            SizedBox(
+            /*SizedBox(
               height: 120.0,
             ),
             Text(
@@ -214,9 +223,9 @@ class _SignUpState extends State<SignUp> {
                   fit: BoxFit.cover,
                 )
               ],
-            ),
+            ),*/
             SizedBox(
-              height: 20.0,
+              height: 100.0,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
