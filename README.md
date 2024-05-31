@@ -1,3 +1,5 @@
 # gardenmate
 
-A new Flutter project.
+Garden Mate Application 
+
+
