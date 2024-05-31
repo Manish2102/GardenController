@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:gardenmate/Device_Screens/GC1Screen.dart';
 import 'package:gardenmate/Device_Screens/GC1_Monitor.dart';
 import 'package:gardenmate/Device_Screens/GC1_Program.dart';
+import 'package:gardenmate/Device_Screens/GC3S_Screen.dart';
+import 'package:gardenmate/Device_Screens/GC3_Program.dart';
+import 'package:gardenmate/Device_Screens/GC3_Screen.dart';
 import 'package:gardenmate/Pages/Activity_Page.dart';
 import 'package:gardenmate/Pages/ForgotPassword.dart';
 import 'package:gardenmate/Pages/Home.dart';
@@ -50,6 +53,9 @@ class GardenControllerApp extends StatelessWidget {
             motor1StartTime: motor1StartTime,
             soilMoisture: soilMoisture,
             isRaining: isRaining),
+        AppRoutes.gc3page: (context) => GC3Page(userName: ''),
+        AppRoutes.gc3program: (context) => GC3ProgramPage(),
+        AppRoutes.gc3s: (context) => GC3SPage(userName: ''),
       },
     );
   }

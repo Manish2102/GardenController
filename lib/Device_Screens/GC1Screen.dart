@@ -22,9 +22,10 @@ class _GC1PageState extends State<GC1Page> {
   String soilMoisture = 'Wet';
 
   final String esp32Url =
-      'http://192.168.1.11'; // Replace with ESP32 IP address
-  final String motorEndpoint = '/motor'; // Endpoint to control the motor
-  final String sensorEndpoint = '/sensor';
+      'http://192.168.1.25:5000'; // Replace with ESP32 IP address
+  final String motorEndpoint =
+      '/motor_control'; // Endpoint to control the motor
+  final String sensorEndpoint = '/sensor_data';
   // Endpoint to fetch sensor data
 
   @override
@@ -104,7 +105,7 @@ class _GC1PageState extends State<GC1Page> {
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
-
+/*
   void updateMotorIterationTimings(int iterations, int duration, int gap) {
     int totalDuration = (duration + gap) * iterations - gap;
     DateTime currentTime = DateTime.now();
@@ -149,6 +150,7 @@ class _GC1PageState extends State<GC1Page> {
       },
     );
   }
+  */
 
   void stopMotorAndNotify() {
     // Stop the motor if it's currently running
