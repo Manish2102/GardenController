@@ -4,12 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gardenmate/Pages/My_Models_Page.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:gardenmate/Pages/Login_Page.dart';
 import 'package:gardenmate/Pages/BottomNav_Bar.dart';
-import 'package:device_info_plus/device_info_plus.dart';
-import 'package:android_intent_plus/android_intent.dart';
 
 class ModelsPage extends StatefulWidget {
   @override
@@ -26,31 +23,6 @@ class _ModelsPageState extends State<ModelsPage> {
     currentUser = FirebaseAuth.instance.currentUser;
   }
 
-  Future<void> openBluetoothSettings() async {
-    final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    final AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-
-    if (Platform.isAndroid) {
-      try {
-        final intent = AndroidIntent(
-          action: 'android.settings.BLUETOOTH_SETTINGS',
-        );
-        await intent.launch();
-      } catch (e) {
-        showError('Could not launch Bluetooth settings for Android');
-      }
-    } else if (Platform.isIOS) {
-      const String bluetoothSettingsUrliOS = 'App-Prefs:root=Bluetooth';
-      if (await canLaunch(bluetoothSettingsUrliOS)) {
-        await launch(bluetoothSettingsUrliOS);
-      } else {
-        showError('Could not launch Bluetooth settings for iOS');
-      }
-    } else {
-      showError('Platform not supported');
-    }
-  }
-
   void showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -61,6 +33,9 @@ class _ModelsPageState extends State<ModelsPage> {
 
   @override
   Widget build(BuildContext context) {
+    String displayName = currentUser?.displayName ?? 'User Name';
+    String initial = displayName.isNotEmpty ? displayName.substring(0, 1) : 'U';
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Models Page'),
@@ -71,19 +46,14 @@ class _ModelsPageState extends State<ModelsPage> {
           padding: EdgeInsets.zero,
           children: <Widget>[
             UserAccountsDrawerHeader(
-              accountName: Text(currentUser?.displayName ?? 'User Name'),
+              accountName: Text(displayName),
               accountEmail: Text(currentUser?.email ?? 'user@example.com'),
               currentAccountPicture: CircleAvatar(
                 child: Text(
-                  currentUser?.displayName?.substring(0, 1) ?? 'U',
+                  initial,
                   style: TextStyle(fontSize: 40.0),
                 ),
               ),
-            ),
-            ListTile(
-              leading: Icon(Icons.bluetooth),
-              title: Text('Bluetooth Settings'),
-              onTap: openBluetoothSettings,
             ),
             ListTile(
               leading: Icon(Icons.logout),

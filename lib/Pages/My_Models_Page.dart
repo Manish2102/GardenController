@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gardenmate/Device_Screens/GC1Screen.dart';
 import 'package:gardenmate/Device_Screens/GC3S_Screen.dart';
-import 'package:gardenmate/Device_Screens/GC3_Screen.dart';
+import 'package:gardenmate/Pages/Provision_Page.dart';
 
 class MyModelsPage extends StatelessWidget {
   @override
@@ -37,7 +37,8 @@ class MyModelsPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => GC3Page(userName: ''),
+                    builder: (context) =>
+                        ProvisioningScreen(title: 'Garden Controller'),
                   ),
                 );
               },

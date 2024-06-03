@@ -6,11 +6,14 @@ class NotificationPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Notification'),
-        leading: Icon(Icons.notifications),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
-      body: Center(
-        child: Text('Notification Page Content'),
-      ),
+      
     );
   }
 }

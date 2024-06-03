@@ -32,6 +32,10 @@ class GardenControllerApp extends StatelessWidget {
 
   get isRaining => null;
 
+  get name => null;
+
+  get email => null;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
