@@ -1,137 +1,181 @@
 import 'package:flutter/material.dart';
-//import 'package:esp_smartconfig/esp_smartconfig.dart';
-//import 'package:wifi_iot/wifi_iot.dart';
+import 'package:wifi_iot/wifi_iot.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-class ProvisioningScreen extends StatefulWidget {
-  const ProvisioningScreen({super.key, required this.title});
-
-  final String title;
-
-  @override
-  State<ProvisioningScreen> createState() => _ProvisioningScreenState();
+void main() {
+  runApp(MyApp());
 }
 
-class _ProvisioningScreenState extends State<ProvisioningScreen> {
-  final passwordController = TextEditingController();
-  String? _selectedSSID;
-  List<String> _wifiNetworks = [];
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: WiFiScanPage(),
+    );
+  }
+}
+
+class WiFiScanPage extends StatefulWidget {
+  @override
+  _WiFiScanPageState createState() => _WiFiScanPageState();
+}
+
+class _WiFiScanPageState extends State<WiFiScanPage> {
+  List<WifiNetwork> _wifiNetworks = [];
+  List<String> _espNetworks = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchWiFiNetworks();
+    _scanWiFiNetworks();
+    _fetchESPNetworks();
   }
 
-  Future<void> _fetchWiFiNetworks() async {
-    final String esp32IPAddress = '192.168.4.1'; // ESP32's hotspot IP address
-    final String url = 'http://$esp32IPAddress/wifi?';
-
-    try {
-      final response = await http.get(Uri.parse(url));
-
-      if (response.statusCode == 200) {
-        final List<dynamic> networkList = response.body as List<dynamic>;
-        setState(() {
-          _wifiNetworks = networkList.map((e) => e.toString()).toList();
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to fetch Wi-Fi networks')),
-        );
-      }
-    } catch (e) {
-      print('Error fetching Wi-Fi networks: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching Wi-Fi networks')),
-      );
-    }
-  }
-
-  Future<void> _sendCredentialsToESP32() async {
-    final String esp32IPAddress = '192.168.4.1'; // ESP32's hotspot IP address
-    final String url = 'http://$esp32IPAddress/configure';
-
-    if (_selectedSSID == null || passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter SSID and password')),
-      );
-      return;
-    }
-
-    final response = await http.post(Uri.parse(url), body: {
-      'ssid': _selectedSSID!,
-      'password': passwordController.text,
+  void _scanWiFiNetworks() async {
+    List<WifiNetwork> networks = await WiFiForIoTPlugin.loadWifiList();
+    setState(() {
+      _wifiNetworks = networks;
     });
+  }
+
+  void _fetchESPNetworks() async {
+    final url = 'http://192.168.4.1/wifi?';
+    final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
-      print('Configuration sent successfully');
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Configuration sent successfully')));
+      List<dynamic> networks = json.decode(response.body);
+      setState(() {
+        _espNetworks =
+            networks.map((network) => network['ssid'] as String).toList();
+      });
     } else {
-      print('Failed to send configuration');
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to send configuration')));
+      print('Failed to fetch ESP networks');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 30.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Icon(
-                Icons.cell_tower,
-                size: 80,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              SizedBox.fromSize(size: const Size.fromHeight(20)),
-              const Text(
-                'Connect device to Wi-Fi network using ESP-Touch protocol',
-                textAlign: TextAlign.center,
-              ),
-              SizedBox.fromSize(size: const Size.fromHeight(40)),
-              DropdownButton<String>(
-                hint: const Text('Select Wi-Fi Network'),
-                value: _selectedSSID,
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedSSID = newValue!;
-                  });
-                },
-                items: _wifiNetworks.map((String network) {
-                  return DropdownMenuItem<String>(
-                    value: network,
-                    child: Text(network),
-                  );
-                }).toList(),
-              ),
-              TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                ),
-                obscureText: true,
-                controller: passwordController,
-              ),
-              SizedBox.fromSize(size: const Size.fromHeight(40)),
-              ElevatedButton(
-                onPressed: _sendCredentialsToESP32,
-                child: const Text('Send credentials to ESP32'),
-              ),
-            ],
+      appBar: AppBar(
+        title: Text('Scan WiFi Networks'),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: _wifiNetworks.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(_wifiNetworks[index].ssid ?? ''),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => WiFiCredentialsPage(
+                          ssid: _wifiNetworks[index].ssid ?? '',
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
-        ),
+          Divider(),
+          Text('ESP8266 Networks'),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _espNetworks.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(_espNetworks[index]),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => WiFiCredentialsPage(
+                          ssid: _espNetworks[index],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
+}
+
+class WiFiCredentialsPage extends StatefulWidget {
+  final String ssid;
+
+  WiFiCredentialsPage({required this.ssid});
 
   @override
-  void dispose() {
-    passwordController.dispose();
-    super.dispose();
+  _WiFiCredentialsPageState createState() => _WiFiCredentialsPageState();
+}
+
+class _WiFiCredentialsPageState extends State<WiFiCredentialsPage> {
+  String _password = '';
+
+  void _sendCredentials() async {
+    final url = 'http://192.168.4.1/wifisave';
+    final response = await http.post(
+      Uri.parse(url),
+      body: {
+        'ssid': widget.ssid,
+        'password': _password,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      print('Configuration sent successfully');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Configuration sent successfully')),
+      );
+    } else {
+      print('Failed to send configuration');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to send configuration')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Enter WiFi Password'),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'SSID: ${widget.ssid}',
+              style: TextStyle(fontSize: 18.0),
+            ),
+            SizedBox(height: 20.0),
+            TextField(
+              decoration: InputDecoration(labelText: 'Password'),
+              onChanged: (value) {
+                _password = value;
+              },
+              obscureText: true,
+            ),
+            SizedBox(height: 20.0),
+            ElevatedButton(
+              onPressed: _sendCredentials,
+              child: Text('Send Credentials'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
