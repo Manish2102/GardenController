@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:esp_smartconfig/esp_smartconfig.dart';
+//import 'package:esp_smartconfig/esp_smartconfig.dart';
+//import 'package:wifi_iot/wifi_iot.dart';
+import 'package:http/http.dart' as http;
 
 class ProvisioningScreen extends StatefulWidget {
   const ProvisioningScreen({super.key, required this.title});
@@ -11,76 +13,66 @@ class ProvisioningScreen extends StatefulWidget {
 }
 
 class _ProvisioningScreenState extends State<ProvisioningScreen> {
-  final ssidController = TextEditingController();
   final passwordController = TextEditingController();
+  String? _selectedSSID;
+  List<String> _wifiNetworks = [];
 
-  Future<void> _startProvisioning() async {
-    final provisioner = Provisioner.espTouch();
+  @override
+  void initState() {
+    super.initState();
+    _fetchWiFiNetworks();
+  }
 
-    provisioner.listen((response) {
-      Navigator.of(context).pop(response);
-    });
+  Future<void> _fetchWiFiNetworks() async {
+    final String esp32IPAddress = '192.168.4.1'; // ESP32's hotspot IP address
+    final String url = 'http://$esp32IPAddress/wifi?';
 
-    provisioner.start(ProvisioningRequest.fromStrings(
-      ssid: ssidController.text,
-      bssid: '00:00:00:00:00:00',
-      password: passwordController.text,
-    ));
+    try {
+      final response = await http.get(Uri.parse(url));
 
-    ProvisioningResponse? response = await showDialog<ProvisioningResponse>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Provisioning'),
-          content: const Text('Provisioning started. Please wait...'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Stop'),
-            ),
-          ],
+      if (response.statusCode == 200) {
+        final List<dynamic> networkList = response.body as List<dynamic>;
+        setState(() {
+          _wifiNetworks = networkList.map((e) => e.toString()).toList();
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to fetch Wi-Fi networks')),
         );
-      },
-    );
-
-    if(provisioner.running) {
-      provisioner.stop();
-    }
-
-    if (response != null) {
-      _onDeviceProvisioned(response);
+      }
+    } catch (e) {
+      print('Error fetching Wi-Fi networks: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error fetching Wi-Fi networks')),
+      );
     }
   }
 
-  _onDeviceProvisioned(ProvisioningResponse response) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Device provisioned'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Text('Device successfully connected to the ${ssidController.text} network'),
-              SizedBox.fromSize(size: const Size.fromHeight(20)),
-              const Text('Device:'),
-              Text('IP: ${response.ipAddressText}'),
-              Text('BSSID: ${response.bssidText}'),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
+  Future<void> _sendCredentialsToESP32() async {
+    final String esp32IPAddress = '192.168.4.1'; // ESP32's hotspot IP address
+    final String url = 'http://$esp32IPAddress/configure';
+
+    if (_selectedSSID == null || passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter SSID and password')),
+      );
+      return;
+    }
+
+    final response = await http.post(Uri.parse(url), body: {
+      'ssid': _selectedSSID!,
+      'password': passwordController.text,
+    });
+
+    if (response.statusCode == 200) {
+      print('Configuration sent successfully');
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Configuration sent successfully')));
+    } else {
+      print('Failed to send configuration');
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to send configuration')));
+    }
   }
 
   @override
@@ -103,11 +95,20 @@ class _ProvisioningScreenState extends State<ProvisioningScreen> {
                 textAlign: TextAlign.center,
               ),
               SizedBox.fromSize(size: const Size.fromHeight(40)),
-              TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'SSID (Network name)',
-                ),
-                controller: ssidController,
+              DropdownButton<String>(
+                hint: const Text('Select Wi-Fi Network'),
+                value: _selectedSSID,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedSSID = newValue!;
+                  });
+                },
+                items: _wifiNetworks.map((String network) {
+                  return DropdownMenuItem<String>(
+                    value: network,
+                    child: Text(network),
+                  );
+                }).toList(),
               ),
               TextFormField(
                 decoration: const InputDecoration(
@@ -118,8 +119,8 @@ class _ProvisioningScreenState extends State<ProvisioningScreen> {
               ),
               SizedBox.fromSize(size: const Size.fromHeight(40)),
               ElevatedButton(
-                onPressed: _startProvisioning,
-                child: const Text('Start provisioning'),
+                onPressed: _sendCredentialsToESP32,
+                child: const Text('Send credentials to ESP32'),
               ),
             ],
           ),
@@ -130,7 +131,6 @@ class _ProvisioningScreenState extends State<ProvisioningScreen> {
 
   @override
   void dispose() {
-    ssidController.dispose();
     passwordController.dispose();
     super.dispose();
   }
