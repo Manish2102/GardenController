@@ -45,7 +45,7 @@ class _ProvisioningScreenState extends State<ProvisioningScreen> {
       },
     );
 
-    if (provisioner.running) {
+    if(provisioner.running) {
       provisioner.stop();
     }
 
@@ -63,8 +63,7 @@ class _ProvisioningScreenState extends State<ProvisioningScreen> {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Text(
-                  'Device successfully connected to the ${ssidController.text} network'),
+              Text('Device successfully connected to the ${ssidController.text} network'),
               SizedBox.fromSize(size: const Size.fromHeight(20)),
               const Text('Device:'),
               Text('IP: ${response.ipAddressText}'),

@@ -37,8 +37,7 @@ class MyModelsPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        ProvisioningScreen(title: 'Garden Controller'),
+                    builder: (context) => ProvisioningScreen(title: ''),
                   ),
                 );
               },
