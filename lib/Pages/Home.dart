@@ -1,12 +1,13 @@
 import 'dart:io';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gardenmate/Pages/My_Models_Page.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:gardenmate/Pages/Login_Page.dart';
-import 'package:gardenmate/Pages/BottomNav_Bar.dart';
+//import 'package:gardenmate/Pages/BottomNav_Bar.dart';
+import 'package:gardenmate/Pages/Provision_Page.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ModelsPage extends StatefulWidget {
   @override
@@ -16,6 +17,7 @@ class ModelsPage extends StatefulWidget {
 class _ModelsPageState extends State<ModelsPage> {
   String qrText = '';
   User? currentUser;
+  final ValueNotifier<bool> connectionStatus = ValueNotifier<bool>(false);
 
   @override
   void initState() {
@@ -31,6 +33,28 @@ class _ModelsPageState extends State<ModelsPage> {
     );
   }
 
+  void openBluetoothSettings() async {
+    if (Platform.isAndroid) {
+      const androidUrl =
+          'intent://settings/#Intent;component=com.android.settings/.bluetooth.BluetoothSettings;end';
+      try {
+        await launchUrl(Uri.parse(androidUrl),
+            mode: LaunchMode.externalApplication);
+      } catch (e) {
+        showError('Could not open Bluetooth settings.');
+      }
+    } else if (Platform.isIOS) {
+      const iosUrl = 'App-Prefs:root=Bluetooth';
+      try {
+        await launchUrl(Uri.parse(iosUrl));
+      } catch (e) {
+        showError('Could not open Bluetooth settings.');
+      }
+    } else {
+      showError('Unsupported platform.');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     String displayName = currentUser?.displayName ?? 'User Name';
@@ -38,20 +62,59 @@ class _ModelsPageState extends State<ModelsPage> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.green[100],
         title: Text('Models Page'),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'wifi') {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        WiFiScanPage(connectionStatus: connectionStatus),
+                  ),
+                );
+              } else if (value == 'bluetooth') {
+                openBluetoothSettings();
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem(
+                  value: 'wifi',
+                  child: Text('WiFi Provision'),
+                ),
+                PopupMenuItem(
+                  value: 'bluetooth',
+                  child: Text('Bluetooth Settings'),
+                ),
+              ];
+            },
+          ),
+        ],
       ),
-      bottomNavigationBar: buildBottomBar(context, 0, (index) {}),
+      //bottomNavigationBar: buildBottomBar(context, 0, (index) {}),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
             UserAccountsDrawerHeader(
-              accountName: Text(displayName),
-              accountEmail: Text(currentUser?.email ?? 'user@example.com'),
+              decoration: BoxDecoration(color: Colors.green[100]),
+              accountName: Text(
+                displayName,
+                style:
+                    TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+              ),
+              accountEmail: Text(
+                currentUser?.email ?? 'user@example.com',
+                style:
+                    TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+              ),
               currentAccountPicture: CircleAvatar(
                 child: Text(
                   initial,
-                  style: TextStyle(fontSize: 40.0),
+                  style: TextStyle(fontSize: 40.0, color: Colors.black),
                 ),
               ),
             ),
@@ -66,18 +129,43 @@ class _ModelsPageState extends State<ModelsPage> {
                 );
               },
             ),
+            ListTile(
+              leading: Icon(Icons.settings),
+              title: Text('Provision'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        WiFiScanPage(connectionStatus: connectionStatus),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
       body: Container(
         alignment: Alignment.center,
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
+            SizedBox(height: 20),
+            ValueListenableBuilder<bool>(
+              valueListenable: connectionStatus,
+              builder: (context, isConnected, child) {
+                return Card(
+                  child: ListTile(
+                    leading: Icon(Icons.wifi,
+                        color: isConnected ? Colors.green : Colors.red),
+                    title: Text(isConnected ? 'Connected' : 'Not Connected'),
+                  ),
+                );
+              },
+            ),
             SizedBox(height: 20),
             OutlinedButton(
               onPressed: () {
-                // Navigate to MyModelsPage when button is clicked
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => MyModelsPage()),
@@ -91,7 +179,6 @@ class _ModelsPageState extends State<ModelsPage> {
             if (qrText.isNotEmpty)
               ElevatedButton(
                 onPressed: () {
-                  // Handle button press
                   print('Button pressed: $qrText');
                 },
                 child: Text(qrText),
@@ -101,7 +188,10 @@ class _ModelsPageState extends State<ModelsPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _openQRScanner,
-        child: Icon(Icons.add),
+        backgroundColor: Colors.green[100],
+        child: Icon(
+          Icons.add,
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
@@ -115,7 +205,6 @@ class _ModelsPageState extends State<ModelsPage> {
       ),
     );
 
-    // Update qrText when QR code is scanned
     setState(() {
       qrText = result ?? '';
     });
@@ -153,11 +242,12 @@ class _QRViewExampleState extends State<QRViewExample> {
               key: qrKey,
               onQRViewCreated: _onQRViewCreated,
               overlay: QrScannerOverlayShape(
-                  borderColor: Color.fromARGB(255, 60, 167, 41),
-                  borderRadius: 10,
-                  borderLength: 30,
-                  borderWidth: 10,
-                  cutOutSize: 300),
+                borderColor: Color.fromARGB(255, 60, 167, 41),
+                borderRadius: 10,
+                borderLength: 30,
+                borderWidth: 10,
+                cutOutSize: 300,
+              ),
             ),
           ),
           Expanded(
@@ -182,7 +272,6 @@ class _QRViewExampleState extends State<QRViewExample> {
               ?.group(1) ??
           '';
 
-      // Pass button name back to ModelsPage
       Navigator.pop(context, buttonName);
     });
   }

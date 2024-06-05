@@ -22,11 +22,9 @@ class _GC1PageState extends State<GC1Page> {
   String soilMoisture = 'Wet';
 
   final String esp32Url =
-      'http://192.168.1.25:5000'; // Replace with ESP32 IP address
-  final String motorEndpoint =
-      '/motor_control'; // Endpoint to control the motor
-  final String sensorEndpoint = '/sensor_data';
-  // Endpoint to fetch sensor data
+      'http://192.168.1.10:5000'; // Replace with ESP32 IP address
+  final String motorEndpoint = '/motorStatus'; // Endpoint to control the motor
+  final String sensorEndpoint = '/sensor_data'; // Endpoint to fetch sensor data
 
   @override
   void initState() {
@@ -105,9 +103,8 @@ class _GC1PageState extends State<GC1Page> {
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
-/*
+
   void updateMotorIterationTimings(int iterations, int duration, int gap) {
-    int totalDuration = (duration + gap) * iterations - gap;
     DateTime currentTime = DateTime.now();
     DateTime scheduledTime = DateTime(
       currentTime.year,
@@ -150,7 +147,6 @@ class _GC1PageState extends State<GC1Page> {
       },
     );
   }
-  */
 
   void stopMotorAndNotify() {
     // Stop the motor if it's currently running
@@ -189,78 +185,102 @@ class _GC1PageState extends State<GC1Page> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Main Motor',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                Switch(
-                  value: isMainMotorOn,
-                  onChanged: (value) {
-                    toggleMotor(value);
-                  },
-                  activeTrackColor: Colors.green,
-                  activeColor: Colors.green,
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            OutlinedButton(
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProgramSettingsPage(),
-                    ));
-              },
-              child: Text(
-                'Configuration',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                ),
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
               ),
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(
-                    Color.fromARGB(255, 182, 197, 213)),
-                padding: MaterialStateProperty.all(EdgeInsets.all(16)),
-                shape: MaterialStateProperty.all(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+              elevation: 5,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Main Motor',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    Switch(
+                      value: isMainMotorOn,
+                      onChanged: (value) {
+                        toggleMotor(value);
+                      },
+                      activeTrackColor: Colors.green,
+                      activeColor: Colors.green,
+                    ),
+                  ],
                 ),
-                elevation: MaterialStateProperty.all(10),
               ),
             ),
             SizedBox(height: 20),
-            OutlinedButton(
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MonitorPage(
-                          isMainMotorOn: isMainMotorOn,
-                          motor1StartTime: motor1StartTime,
-                          soilMoisture: soilMoisture,
-                          isRaining: isRaining),
-                    ));
-              },
-              child: Text(
-                'Monitor',
-                style: TextStyle(color: Colors.black, fontSize: 20),
-              ),
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(
-                    Color.fromARGB(255, 182, 197, 213)),
-                padding: MaterialStateProperty.all(EdgeInsets.all(16)),
-                shape: MaterialStateProperty.all(
-                  RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProgramSettingsPage(),
+                      ));
+                },
+                icon: Icon(
+                  Icons.settings,
+                  color: Colors.black, // Change the icon color here
+                ),
+                label: Text(
+                  'Configuration',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
                   ),
                 ),
-                elevation: MaterialStateProperty.all(10),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(
+                      Color.fromARGB(255, 182, 197, 213)),
+                  padding: MaterialStateProperty.all(EdgeInsets.all(16)),
+                  shape: MaterialStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  elevation: MaterialStateProperty.all(10),
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MonitorPage(
+                            isMainMotorOn: isMainMotorOn,
+                            motor1StartTime: motor1StartTime,
+                            soilMoisture: soilMoisture,
+                            isRaining: isRaining),
+                      ));
+                },
+                icon: Icon(
+                  Icons.monitor,
+                  color: Colors.black, // Change the icon color here
+                ),
+                label: Text(
+                  'Monitor',
+                  style: TextStyle(color: Colors.black, fontSize: 20),
+                ),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(
+                      Color.fromARGB(255, 182, 197, 213)),
+                  padding: MaterialStateProperty.all(EdgeInsets.all(16)),
+                  shape: MaterialStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  elevation: MaterialStateProperty.all(10),
+                ),
               ),
             ),
           ],

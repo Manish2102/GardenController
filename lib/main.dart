@@ -50,7 +50,9 @@ class GardenControllerApp extends StatelessWidget {
         AppRoutes.signuppage: (context) => SignUp(),
         AppRoutes.activitypage: (context) => ActivityPage(),
         AppRoutes.notificationpage: (context) => NotificationPage(),
-        AppRoutes.gc1screen: (context) => GC1Page(userName: ''),
+        AppRoutes.gc1screen: (context) => GC1Page(
+              userName: '',
+            ),
         AppRoutes.gc1program: (context) => ProgramSettingsPage(),
         AppRoutes.gc1monitor: (context) => MonitorPage(
             isMainMotorOn: isMainMotorOn,

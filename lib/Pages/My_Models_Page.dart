@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:gardenmate/Device_Screens/GC1Screen.dart';
 import 'package:gardenmate/Device_Screens/GC3S_Screen.dart';
-import 'package:gardenmate/Pages/Provision_Page.dart';
+import 'package:gardenmate/Device_Screens/GC3_Screen.dart';
+//import 'package:gardenmate/Pages/Provision_Page.dart';
 
 class MyModelsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.green[100],
         title: Text('My Devices'),
       ),
       body: Center(
@@ -19,10 +21,9 @@ class MyModelsPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => GC1Page(
-                      userName: '',
-                    ),
-                  ),
+                      builder: (context) => GC1Page(
+                            userName: '',
+                          )),
                 );
                 // Handle GC1 button press
               },
@@ -37,7 +38,9 @@ class MyModelsPage extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => WiFiScanPage(),
+                    builder: (context) => GC3Page(
+                      userName: '',
+                    ),
                   ),
                 );
               },

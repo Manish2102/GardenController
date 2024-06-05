@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gardenmate/Pages/BottomNav_Bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum Frequency { Daily, AlternativeDays, Weekly, SelectDays }
+enum Frequency { None, Daily, AlternativeDays, Weekly, SelectDays }
 
 class ProgramSettingsPage extends StatefulWidget {
   @override
@@ -13,7 +13,7 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
   late SharedPreferences _prefs;
   TimeOfDay _selectedTime = TimeOfDay.now();
   int _duration = 1;
-  Frequency _frequency = Frequency.Daily; // Default frequency
+  Frequency _frequency = Frequency.None; // Default frequency set to None
   List<String> _selectedDays = [];
   List<String> _daysOfWeek = [
     'Monday',
@@ -43,10 +43,23 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
   }
 
   Future<void> _savePreferences() async {
+    if (_duration > 5) {
+      // Show a Snackbar indicating max duration exceeded
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Maximum duration allowed is 5 minutes.'),
+        ),
+      );
+      return; // Exit without saving if duration exceeds 5 minutes
+    }
+
     await _prefs.setString('selectedTime', _selectedTime.toString());
     await _prefs.setInt('duration', _duration);
     await _prefs.setInt('frequency', _frequency.index);
     await _prefs.setStringList('selectedDays', _selectedDays);
+
+    // Navigate back to the previous screen after saving preferences
+    Navigator.pop(context);
   }
 
   void _selectTime(BuildContext context) async {
@@ -92,6 +105,18 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
                       style:
                           TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
                     ),
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(
+                          Color.fromARGB(255, 194, 219, 247)),
+                      padding: MaterialStateProperty.all(EdgeInsets.all(12)),
+                      shape: MaterialStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(color: Colors.black),
+                        ),
+                      ),
+                      elevation: MaterialStateProperty.all(5),
+                    ),
                   ),
                   SizedBox(width: 10),
                   Text(
@@ -124,19 +149,28 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 10),
-              DropdownButton<Frequency>(
-                value: _frequency,
-                onChanged: (Frequency? newValue) {
-                  setState(() {
-                    _frequency = newValue!;
-                  });
-                },
-                items: Frequency.values.map((Frequency frequency) {
-                  return DropdownMenuItem<Frequency>(
-                    value: frequency,
-                    child: Text(frequency.toString().split('.').last),
-                  );
-                }).toList(),
+              InputDecorator(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<Frequency>(
+                    value: _frequency,
+                    onChanged: (Frequency? newValue) {
+                      setState(() {
+                        _frequency = newValue!;
+                      });
+                    },
+                    items: Frequency.values.map((Frequency frequency) {
+                      return DropdownMenuItem<Frequency>(
+                        value: frequency,
+                        child: Text(frequency.toString().split('.').last),
+                      );
+                    }).toList(),
+                  ),
+                ),
               ),
               if (_frequency == Frequency.SelectDays) ...[
                 SizedBox(height: 20),
@@ -150,25 +184,28 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
                 ),
               ],
               SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  await _savePreferences();
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  'Save',
-                  style: TextStyle(color: Colors.black, fontSize: 20),
-                ),
-                style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all(
-                      Color.fromARGB(255, 194, 219, 247)),
-                  padding: MaterialStateProperty.all(EdgeInsets.all(8)),
-                  shape: MaterialStateProperty.all(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+              Center(
+                child: SizedBox(
+                  width: 200, // Set your desired width here
+                  child: OutlinedButton(
+                    onPressed: _savePreferences,
+                    child: Text(
+                      'Save',
+                      style: TextStyle(color: Colors.black, fontSize: 20),
+                    ),
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(
+                          Color.fromARGB(255, 194, 219, 247)),
+                      padding: MaterialStateProperty.all(EdgeInsets.all(12)),
+                      shape: MaterialStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          side: BorderSide(color: Colors.black),
+                        ),
+                      ),
+                      elevation: MaterialStateProperty.all(5),
                     ),
                   ),
-                  elevation: MaterialStateProperty.all(5),
                 ),
               ),
             ],
