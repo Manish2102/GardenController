@@ -81,14 +81,27 @@ class _WiFiScanPageState extends State<WiFiScanPage> {
   }
 
   void _connectToDevice(BluetoothDevice device) async {
-    await device.connect();
-    setState(() {
-      _connectedDevice = device;
-      connectedESP32Devices.add(device);
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Connected to ${device.name}')),
-    );
+    try {
+      await device.connect();
+      setState(() {
+        _connectedDevice = device;
+        connectedESP32Devices.add(device);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Connected to ${device.name}')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to connect: $e')),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    _connectedDevice?.disconnect();
+    super.dispose();
   }
 
   @override

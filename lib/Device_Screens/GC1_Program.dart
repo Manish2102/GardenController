@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:gardenmate/Pages/Activity_Page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gardenmate/Pages/BottomNav_Bar.dart';
+import 'package:gardenmate/Pages/Scheduled_Activity.dart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum Frequency { None, Daily, AlternativeDays, Weekly, SelectDays }
 
@@ -25,6 +27,7 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
     'Saturday',
     'Sunday'
   ];
+  List<ScheduledActivity> _scheduledActivities = [];
 
   @override
   void initState() {
@@ -54,63 +57,83 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
       _duration = _prefs.getInt('duration') ?? 1;
       _frequency = Frequency.values[_prefs.getInt('frequency') ?? 0];
       _selectedDays = _prefs.getStringList('selectedDays') ?? [];
+
+      final List<String>? scheduledActivityStrings =
+          _prefs.getStringList('scheduledActivities');
+      if (scheduledActivityStrings != null) {
+        _scheduledActivities = scheduledActivityStrings
+            .map((jsonString) =>
+                ScheduledActivity.fromJson(json.decode(jsonString)))
+            .toList();
+      }
     });
   }
 
- Future<void> _savePreferences() async {
-  if (_duration <= 0) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Please enter a valid duration.'),
+  Future<void> _savePreferences() async {
+    if (_duration <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please enter a valid duration.'),
+        ),
+      );
+      return;
+    }
+
+    if (_frequency == Frequency.None) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please select a frequency.'),
+        ),
+      );
+      return;
+    }
+
+    if (_frequency == Frequency.SelectDays && _selectedDays.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please select at least one day.'),
+        ),
+      );
+      return;
+    }
+
+    String formattedTime = _formatTimeOfDay(_selectedTime);
+    ScheduledActivity newActivity = ScheduledActivity(
+      selectedTime: formattedTime,
+      duration: _duration,
+      frequency: _frequency.index,
+      selectedDays: _selectedDays,
+    );
+
+    _scheduledActivities.add(newActivity);
+
+    await _prefs.setString('selectedTime', formattedTime);
+    await _prefs.setInt('duration', _duration);
+    await _prefs.setInt('frequency', _frequency.index);
+    await _prefs.setStringList('selectedDays', _selectedDays);
+    await _prefs.setStringList(
+        'scheduledActivities',
+        _scheduledActivities
+            .map((activity) => json.encode(activity.toJson()))
+            .toList());
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ActivityPage(
+          scheduledActivities: _scheduledActivities,
+          onScheduleSuccess: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Schedule successful'),
+              ),
+            );
+          },
+          selectedTime: '',
+        ),
       ),
     );
-    return;
   }
-
-  if (_frequency == Frequency.None) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Please select a frequency.'),
-      ),
-    );
-    return;
-  }
-
-  if (_frequency == Frequency.SelectDays && _selectedDays.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Please select at least one day.'),
-      ),
-    );
-    return;
-  }
-
-  await _prefs.setString('selectedTime', _formatTimeOfDay(_selectedTime));
-  await _prefs.setInt('duration', _duration);
-  await _prefs.setInt('frequency', _frequency.index);
-  await _prefs.setStringList('selectedDays', _selectedDays);
-
-  // Pass data to ActivityPage
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ActivityPage(
-        selectedTime: _formatTimeOfDay(_selectedTime),
-        duration: _duration,
-        frequency: _frequency.index,
-        selectedDays: _selectedDays,
-        // Add a callback to display a success message
-        onScheduleSuccess: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Schedule successful'),
-            ),
-          );
-        },
-      ),
-    ),
-  );
-}
 
   void _selectTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
@@ -236,7 +259,7 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
               SizedBox(height: 20),
               Center(
                 child: SizedBox(
-                  width: 200, // Set your desired width here
+                  width: 200,
                   child: OutlinedButton(
                     onPressed: _savePreferences,
                     child: Text(

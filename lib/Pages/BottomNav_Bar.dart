@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:gardenmate/Pages/Activity_Page.dart';
 import 'package:gardenmate/Pages/Home.dart';
+import 'package:gardenmate/Pages/Scheduled_Activity.dart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'activity_page.dart';
 import 'notification_page.dart';
 
 Padding buildBottomBar(context, int _currentIndex, Function callback) {
@@ -15,7 +18,7 @@ Padding buildBottomBar(context, int _currentIndex, Function callback) {
         selectedItemColor: Colors.black,
         selectedFontSize: 15.0,
         iconSize: 30.0,
-        onTap: (index) {
+        onTap: (index) async {
           switch (index) {
             case 0:
               Navigator.pushReplacement(
@@ -24,16 +27,26 @@ Padding buildBottomBar(context, int _currentIndex, Function callback) {
               );
               break;
             case 1:
+              final SharedPreferences prefs =
+                  await SharedPreferences.getInstance();
+              final List<String>? scheduledActivityStrings =
+                  prefs.getStringList('scheduledActivities');
+              final List<ScheduledActivity> scheduledActivities =
+                  scheduledActivityStrings != null
+                      ? scheduledActivityStrings
+                          .map((jsonString) => ScheduledActivity.fromJson(
+                              json.decode(jsonString)))
+                          .toList()
+                      : [];
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => ActivityPage(
-                          selectedTime: '',
-                          duration: 0,
-                          frequency: 0,
-                          selectedDays: [],
-                          onScheduleSuccess: () {},
-                        )),
+                  builder: (context) => ActivityPage(
+                    onScheduleSuccess: () {},
+                    selectedTime: '', // Adjust as necessary
+                    scheduledActivities: scheduledActivities,
+                  ),
+                ),
               );
               break;
             case 2:
