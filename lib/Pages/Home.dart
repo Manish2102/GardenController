@@ -71,8 +71,9 @@ class _ModelsPageState extends State<ModelsPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        WiFiScanPage(connectionStatus: connectionStatus),
+                    builder: (context) => WiFiScanPage(
+                      connectionStatus: connectionStatus,
+                    ),
                   ),
                 );
               } else if (value == 'bluetooth') {
@@ -136,8 +137,9 @@ class _ModelsPageState extends State<ModelsPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        WiFiScanPage(connectionStatus: connectionStatus),
+                    builder: (context) => WiFiScanPage(
+                      connectionStatus: connectionStatus,
+                    ),
                   ),
                 );
               },

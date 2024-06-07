@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:gardenmate/Pages/BottomNav_Bar.dart';
+import 'package:gardenmate/Pages/Activity_Page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:gardenmate/Pages/BottomNav_Bar.dart';
 
 enum Frequency { None, Daily, AlternativeDays, Weekly, SelectDays }
 
@@ -13,7 +14,7 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
   late SharedPreferences _prefs;
   TimeOfDay _selectedTime = TimeOfDay.now();
   int _duration = 1;
-  Frequency _frequency = Frequency.None; // Default frequency set to None
+  Frequency _frequency = Frequency.None;
   List<String> _selectedDays = [];
   List<String> _daysOfWeek = [
     'Monday',
@@ -31,36 +32,85 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
     _loadPreferences();
   }
 
+  String _formatTimeOfDay(TimeOfDay time) {
+    final now = DateTime.now();
+    final formattedDateTime =
+        DateTime(now.year, now.month, now.day, time.hour, time.minute);
+    return formattedDateTime.toIso8601String();
+  }
+
+  TimeOfDay _parseTimeOfDay(String timeString) {
+    final dateTime = DateTime.parse(timeString);
+    return TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
+  }
+
   void _loadPreferences() async {
     _prefs = await SharedPreferences.getInstance();
     setState(() {
-      _selectedTime = TimeOfDay.fromDateTime(DateTime.parse(
-          _prefs.getString('selectedTime') ?? DateTime.now().toString()));
+      final timeString = _prefs.getString('selectedTime');
+      if (timeString != null) {
+        _selectedTime = _parseTimeOfDay(timeString);
+      }
       _duration = _prefs.getInt('duration') ?? 1;
       _frequency = Frequency.values[_prefs.getInt('frequency') ?? 0];
       _selectedDays = _prefs.getStringList('selectedDays') ?? [];
     });
   }
 
-  Future<void> _savePreferences() async {
-    if (_duration > 5) {
-      // Show a Snackbar indicating max duration exceeded
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Maximum duration allowed is 5 minutes.'),
-        ),
-      );
-      return; // Exit without saving if duration exceeds 5 minutes
-    }
-
-    await _prefs.setString('selectedTime', _selectedTime.toString());
-    await _prefs.setInt('duration', _duration);
-    await _prefs.setInt('frequency', _frequency.index);
-    await _prefs.setStringList('selectedDays', _selectedDays);
-
-    // Navigate back to the previous screen after saving preferences
-    Navigator.pop(context);
+ Future<void> _savePreferences() async {
+  if (_duration <= 0) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Please enter a valid duration.'),
+      ),
+    );
+    return;
   }
+
+  if (_frequency == Frequency.None) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Please select a frequency.'),
+      ),
+    );
+    return;
+  }
+
+  if (_frequency == Frequency.SelectDays && _selectedDays.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Please select at least one day.'),
+      ),
+    );
+    return;
+  }
+
+  await _prefs.setString('selectedTime', _formatTimeOfDay(_selectedTime));
+  await _prefs.setInt('duration', _duration);
+  await _prefs.setInt('frequency', _frequency.index);
+  await _prefs.setStringList('selectedDays', _selectedDays);
+
+  // Pass data to ActivityPage
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ActivityPage(
+        selectedTime: _formatTimeOfDay(_selectedTime),
+        duration: _duration,
+        frequency: _frequency.index,
+        selectedDays: _selectedDays,
+        // Add a callback to display a success message
+        onScheduleSuccess: () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Schedule successful'),
+            ),
+          );
+        },
+      ),
+    ),
+  );
+}
 
   void _selectTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
@@ -135,7 +185,7 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
                   setState(() {
-                    _duration = int.tryParse(value) ?? 1;
+                    _duration = int.tryParse(value) ?? 0;
                   });
                 },
                 decoration: InputDecoration(

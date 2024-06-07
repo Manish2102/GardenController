@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:gardenmate/Pages/Activity_Page.dart';
 import 'package:gardenmate/Pages/Home.dart';
-import 'activity_page.dart';
 import 'notification_page.dart';
 
 Padding buildBottomBar(context, int _currentIndex, Function callback) {
@@ -26,7 +26,14 @@ Padding buildBottomBar(context, int _currentIndex, Function callback) {
             case 1:
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => ActivityPage()),
+                MaterialPageRoute(
+                    builder: (context) => ActivityPage(
+                          selectedTime: '',
+                          duration: 0,
+                          frequency: 0,
+                          selectedDays: [],
+                          onScheduleSuccess: () {},
+                        )),
               );
               break;
             case 2:

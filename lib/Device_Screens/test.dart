@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-
+/*import 'package:flutter/material.dart';
 import 'package:gardenmate/Device_Screens/GC1_Monitor.dart';
 import 'package:gardenmate/Device_Screens/GC1_Program.dart';
 import 'package:gardenmate/Pages/BottomNav_Bar.dart';
+import 'package:http/http.dart' as http;
 
 class GC1Page extends StatefulWidget {
   final String userName;
@@ -21,12 +20,13 @@ class _GC1PageState extends State<GC1Page> {
   bool motor1Manual = false;
   bool isRaining = false;
   String soilMoisture = 'Wet';
-  List<String> logs = []; // List to store log messages
 
   final String esp32Url =
       'http://192.168.1.10:5000'; // Replace with ESP32 IP address
   final String motorEndpoint = '/motorStatus'; // Endpoint to control the motor
   final String sensorEndpoint = '/sensor_data'; // Endpoint to fetch sensor data
+
+  List<String> motorLogs = []; // Motor activity logs
 
   @override
   void initState() {
@@ -90,9 +90,9 @@ class _GC1PageState extends State<GC1Page> {
           isMainMotorOn = status;
         });
         print('Motor turned ${status ? 'on' : 'off'}');
-        // Add log message when motor state changes
-        logs.add(
-            'Motor ${status ? 'turned on' : 'turned off'} - ${DateTime.now()}');
+
+        // Add log message
+        motorLogs.add('Motor ${status ? 'turned on' : 'turned off'} at ${DateTime.now()}');
       } else {
         print(
             'Failed to turn motor ${status ? 'on' : 'off'}: ${response.reasonPhrase}');
@@ -233,7 +233,8 @@ class _GC1PageState extends State<GC1Page> {
                   color: Colors.black, // Change the icon color here
                 ),
                 label: Text(
-                  'Configuration',
+                  'Configuration
+                  ,
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 20,
@@ -289,40 +290,30 @@ class _GC1PageState extends State<GC1Page> {
               ),
             ),
             SizedBox(height: 20),
-            // Container for displaying logs
+            // Container for motor activity logs
             Container(
-              margin: EdgeInsets.symmetric(vertical: 10),
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.black87),
+                border: Border.all(color: Colors.black87), // Dark border
                 borderRadius: BorderRadius.circular(10),
               ),
-              // Make the container wider
-              width: double.infinity,
-              // Wrap the ListView.builder with a SingleChildScrollView
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Logs',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 10),
-                    // Add a scrollbar to the logs
-                    SizedBox(
-                      height: 200, // Adjust the height as needed
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: logs.length,
-                        itemBuilder: (context, index) {
-                          return Text(logs[index]);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Logs',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 10),
+                  // Display motor activity logs
+                  ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: motorLogs.length,
+                    itemBuilder: (context, index) {
+                      return Text(motorLogs[index]);
+                    },
+                  ),
+                ],
               ),
             ),
           ],
@@ -457,4 +448,4 @@ class _GC1PageState extends State<GC1Page> {
   Future<void> deleteProgramSettings() async {
     // Add code to delete program settings here
   }
-}
+}*/

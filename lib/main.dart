@@ -5,7 +5,7 @@ import 'package:gardenmate/Device_Screens/GC1_Program.dart';
 import 'package:gardenmate/Device_Screens/GC3S_Screen.dart';
 import 'package:gardenmate/Device_Screens/GC3_Program.dart';
 import 'package:gardenmate/Device_Screens/GC3_Screen.dart';
-import 'package:gardenmate/Pages/Activity_Page.dart';
+//import 'package:gardenmate/Pages/Activity_Page.dart';
 import 'package:gardenmate/Pages/ForgotPassword.dart';
 import 'package:gardenmate/Pages/Home.dart';
 import 'package:gardenmate/Pages/Login_Page.dart';
@@ -17,7 +17,11 @@ import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    print('failed to initialize firebase: $e');
+  }
   runApp(GardenControllerApp());
 }
 
@@ -48,7 +52,7 @@ class GardenControllerApp extends StatelessWidget {
         AppRoutes.forgotpassword: (context) => ForgotPassword(),
         AppRoutes.loginpage: (context) => LogIn(),
         AppRoutes.signuppage: (context) => SignUp(),
-        AppRoutes.activitypage: (context) => ActivityPage(),
+        //AppRoutes.activitypage: (context) => ActivityPage(selectedTime: '', duration: '',),
         AppRoutes.notificationpage: (context) => NotificationPage(),
         AppRoutes.gc1screen: (context) => GC1Page(
               userName: '',
