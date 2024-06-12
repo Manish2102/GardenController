@@ -13,6 +13,9 @@ class GC3MonitorPage extends StatelessWidget {
   final int motor3Litres;
   final bool motor3Manual;
 
+  final String soilMoisture;
+  final bool isRaining;
+
   GC3MonitorPage({
     required this.motor1StartTime,
     required this.motor1Litres,
@@ -23,6 +26,8 @@ class GC3MonitorPage extends StatelessWidget {
     required this.motor3StartTime,
     required this.motor3Litres,
     required this.motor3Manual,
+    required this.soilMoisture,
+    required this.isRaining,
   });
 
   @override
@@ -56,6 +61,10 @@ class GC3MonitorPage extends StatelessWidget {
               motor3Litres,
               motor3Manual,
             ),
+            SizedBox(height: 20),
+            _buildStatusWidget1('Soil Moisture', soilMoisture, Colors.yellow),
+            _buildStatusWidget1('Rain Detection',
+                isRaining ? 'Rainy' : 'No Rain', Colors.yellow),
           ],
         ),
       ),

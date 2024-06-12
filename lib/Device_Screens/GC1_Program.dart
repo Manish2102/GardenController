@@ -70,6 +70,7 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
   }
 
   Future<void> _savePreferences() async {
+    // Validate duration
     if (_duration <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -79,6 +80,7 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
       return;
     }
 
+    // Validate frequency
     if (_frequency == Frequency.None) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -88,6 +90,7 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
       return;
     }
 
+    // Validate selected days if frequency is SelectDays
     if (_frequency == Frequency.SelectDays && _selectedDays.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -97,6 +100,7 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
       return;
     }
 
+    // If all validations pass, proceed to save preferences
     String formattedTime = _formatTimeOfDay(_selectedTime);
     ScheduledActivity newActivity = ScheduledActivity(
       selectedTime: formattedTime,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gardenmate/Device_Screens/GC1_Program.dart';
+import 'package:gardenmate/Device_Screens/GC3_Program.dart';
 import 'package:gardenmate/Pages/BottomNav_Bar.dart';
 
 class GC3SPage extends StatefulWidget {
@@ -60,59 +61,154 @@ class _GC3SPageState extends State<GC3SPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Main Motor',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Card(
+                elevation: 5,
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Main Motor',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Status:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            _getMotorStatus(mainMotorManual),
+                            style: TextStyle(
+                              color: _getStatusColor(mainMotorManual),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Control:',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Switch(
+                            value: mainMotorManual,
+                            onChanged: (value) {
+                              setState(() {
+                                mainMotorManual = value;
+                              });
+                            },
+                            activeTrackColor: Colors.green,
+                            activeColor: Colors.green,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  Switch(
-                    value: mainMotorManual,
-                    onChanged: (value) {
-                      setState(() {
-                        mainMotorManual = value;
-                      });
+                ),
+              ),
+              SizedBox(height: 20),
+              Card(
+                elevation: 5,
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Channels',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      _buildChannelToggle(
+                        'Channel 1',
+                        motor1Manual,
+                        (value) {
+                          setState(() {
+                            motor1Manual = value;
+                          });
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      _buildChannelToggle(
+                        'Channel 2',
+                        motor2Manual,
+                        (value) {
+                          setState(() {
+                            motor2Manual = value;
+                          });
+                        },
+                      ),
+                      SizedBox(height: 10),
+                      _buildChannelToggle(
+                        'Channel 3',
+                        motor3Manual,
+                        (value) {
+                          setState(() {
+                            motor3Manual = value;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => GC3ProgramPage()),
+                      );
                     },
-                    activeTrackColor: Colors.green,
-                    activeColor: Colors.green,
+                    icon: Icon(Icons.settings),
+                    label: Text('Configuration'),
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(
+                          Color.fromARGB(255, 182, 197, 213)),
+                      padding: MaterialStateProperty.all(EdgeInsets.all(16)),
+                      shape: MaterialStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      elevation: MaterialStateProperty.all(10),
+                    ),
+                  ),
+                  SizedBox(width: 20),
+                  ElevatedButton.icon(
+                    onPressed: () {},
+                    icon: Icon(Icons.monitor),
+                    label: Text('Monitor'),
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(
+                          Color.fromARGB(255, 182, 197, 213)),
+                      padding: MaterialStateProperty.all(EdgeInsets.all(16)),
+                      shape: MaterialStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      elevation: MaterialStateProperty.all(10),
+                    ),
                   ),
                 ],
               ),
-              SizedBox(height: 20),
-              _buildStatusWidget1(
-                  'Main Motor Status',
-                  _getMotorStatus(mainMotorManual),
-                  _getStatusColor(mainMotorManual)),
-              SizedBox(height: 20),
-              _buildChannelToggle('Channel 1', motor1Manual, (value) {
-                setState(() {
-                  motor1Manual = value;
-                });
-              }),
-              _buildChannelStatus(
-                  'Channel 1', motor1StartTime, motor1Litres, motor1Manual),
-              SizedBox(height: 20),
-              _buildChannelToggle('Channel 2', motor2Manual, (value) {
-                setState(() {
-                  motor2Manual = value;
-                });
-              }),
-              _buildChannelStatus(
-                  'Channel 2', motor2StartTime, motor2Litres, motor2Manual),
-              SizedBox(height: 20),
-              _buildChannelToggle('Channel 3', motor3Manual, (value) {
-                setState(() {
-                  motor3Manual = value;
-                });
-              }),
-              _buildChannelStatus(
-                  'Channel 3', motor3StartTime, motor3Litres, motor3Manual),
-              SizedBox(height: 20),
-              _buildStatusWidget1('Soil Moisture', soilMoisture, Colors.yellow),
-              _buildStatusWidget1('Rain Detection',
-                  isRaining ? 'Rainy' : 'No Rain', Colors.yellow),
-              _buildStatusWidget1('Flow Meter', flowmeter, Colors.yellow)
             ],
           ),
         ),
@@ -121,13 +217,16 @@ class _GC3SPageState extends State<GC3SPage> {
   }
 
   Widget _buildChannelToggle(
-      String channelName, bool isManual, Function(bool) onChanged) {
+    String channelName,
+    bool isManual,
+    Function(bool) onChanged,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           channelName,
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 16),
         ),
         Switch(
           value: isManual,
@@ -139,74 +238,12 @@ class _GC3SPageState extends State<GC3SPage> {
     );
   }
 
-  Widget _buildChannelStatus(
-      String channelName, DateTime? startTime, int liters, bool isManual) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildStatusWidget1(
-            '$channelName Last Run Time', _formatTime(startTime), Colors.blue),
-        _buildStatusWidget1(
-            '$channelName Litres Dripped', liters.toString(), Colors.orange),
-        _buildStatusWidget1('$channelName Status', isManual ? 'ON' : 'OFF',
-            isManual ? Colors.green : Colors.red),
-      ],
-    );
-  }
-
-  Widget _buildStatusWidget1(String title, String value, Color color) {
-    return Container(
-      padding: EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Text(
-            value,
-            style: TextStyle(color: color),
-          ),
-        ],
-      ),
-    );
-  }
-
   String _getMotorStatus(bool isManual) {
-    if (isManual) {
-      return 'ON';
-    } else {
-      return 'OFF';
-    }
+    return isManual ? 'ON' : 'OFF';
   }
 
   Color _getStatusColor(bool isManual) {
-    if (isManual) {
-      return Colors.green;
-    } else {
-      return Colors.red;
-    }
-  }
-
-  String _formatTime(DateTime? time) {
-    if (time != null) {
-      return '${time.hour}:${time.minute}';
-    } else {
-      return 'N/A';
-    }
+    return isManual ? Colors.green : Colors.red;
   }
 
   void _showSettingsDialog(BuildContext context) {
@@ -222,9 +259,11 @@ class _GC3SPageState extends State<GC3SPage> {
                 TextButton(
                   onPressed: () {
                     Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => ProgramSettingsPage()));
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ProgramSettingsPage(),
+                      ),
+                    );
                   },
                   child: Text('Timer Settings'),
                 ),

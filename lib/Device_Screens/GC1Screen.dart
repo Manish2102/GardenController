@@ -21,18 +21,17 @@ class _GC1PageState extends State<GC1Page> {
   bool motor1Manual = false;
   bool isRaining = false;
   String soilMoisture = 'Wet';
-  List<String> logs = []; // List to store log messages
+  List<String> logs = [];
 
-  final String esp32Url =
-      'http://192.168.1.10:5000'; // Replace with ESP32 IP address
-  final String motorEndpoint = '/motorStatus'; // Endpoint to control the motor
-  final String sensorEndpoint = '/sensor_data'; // Endpoint to fetch sensor data
+  final String esp32Url = 'http://192.168.1.10:5000';
+  final String motorEndpoint = '/motorStatus';
+  final String sensorEndpoint = '/sensor_data';
 
   @override
   void initState() {
     super.initState();
-    fetchMotorStatus(); // Fetch motor status when the page initializes
-    fetchSensorData(); // Fetch sensor data when the page initializes
+    fetchMotorStatus();
+    fetchSensorData();
   }
 
   Future<void> fetchMotorStatus() async {
@@ -90,7 +89,6 @@ class _GC1PageState extends State<GC1Page> {
           isMainMotorOn = status;
         });
         print('Motor turned ${status ? 'on' : 'off'}');
-        // Add log message when motor state changes
         logs.add(
             'Motor ${status ? 'turned on' : 'turned off'} - ${DateTime.now()}');
       } else {
@@ -154,11 +152,9 @@ class _GC1PageState extends State<GC1Page> {
   }
 
   void stopMotorAndNotify() {
-    // Stop the motor if it's currently running
     if (isMainMotorOn) {
       toggleMotor(false);
     }
-    // Display snack notification
     if (!motor1Manual) {
       final snackBar = SnackBar(
         content:
@@ -230,7 +226,7 @@ class _GC1PageState extends State<GC1Page> {
                 },
                 icon: Icon(
                   Icons.settings,
-                  color: Colors.black, // Change the icon color here
+                  color: Colors.black,
                 ),
                 label: Text(
                   'Configuration',
@@ -269,7 +265,7 @@ class _GC1PageState extends State<GC1Page> {
                 },
                 icon: Icon(
                   Icons.monitor,
-                  color: Colors.black, // Change the icon color here
+                  color: Colors.black,
                 ),
                 label: Text(
                   'Monitor',
@@ -297,9 +293,7 @@ class _GC1PageState extends State<GC1Page> {
                 border: Border.all(color: Colors.black87),
                 borderRadius: BorderRadius.circular(10),
               ),
-              // Make the container wider
               width: double.infinity,
-              // Wrap the ListView.builder with a SingleChildScrollView
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -310,9 +304,8 @@ class _GC1PageState extends State<GC1Page> {
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 10),
-                    // Add a scrollbar to the logs
                     SizedBox(
-                      height: 200, // Adjust the height as needed
+                      height: 200,
                       child: ListView.builder(
                         shrinkWrap: true,
                         itemCount: logs.length,
@@ -384,10 +377,7 @@ class _GC1PageState extends State<GC1Page> {
       int iterations = result['iterations'];
       int gap = result['gap'];
 
-      // Calculate the total duration of one cycle
       int totalDuration = duration + gap;
-
-      // Calculate the scheduled start time
       DateTime scheduledStartTime = DateTime(
         DateTime.now().year,
         DateTime.now().month,
@@ -396,25 +386,16 @@ class _GC1PageState extends State<GC1Page> {
         startTime.minute,
       );
 
-      // Calculate the total duration to the next scheduled start time
       int minutesUntilNextStart =
           scheduledStartTime.difference(DateTime.now()).inMinutes;
 
-      // Delay until the next scheduled start time
       await Future.delayed(Duration(minutes: minutesUntilNextStart));
 
-      // Start the scheduled cycles
       for (int i = 0; i < iterations; i++) {
-        // Turn on the motor
         await toggleMotor(true);
-
-        // Delay for the duration of one cycle
         await Future.delayed(Duration(minutes: duration));
-
-        // Turn off the motor
         await toggleMotor(false);
 
-        // Delay for the gap between cycles
         if (i < iterations - 1) {
           await Future.delayed(Duration(minutes: gap));
         }

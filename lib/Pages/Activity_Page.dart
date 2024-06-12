@@ -11,7 +11,8 @@ class ActivityPage extends StatefulWidget {
 
   ActivityPage({
     required this.scheduledActivities,
-    required this.onScheduleSuccess, required String selectedTime,
+    required this.onScheduleSuccess,
+    required String selectedTime,
   });
 
   @override
@@ -36,13 +37,44 @@ class _ActivityPageState extends State<ActivityPage> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
       'scheduledActivities',
-      _scheduledActivities.map((activity) => json.encode(activity.toJson())).toList(),
+      _scheduledActivities
+          .map((activity) => json.encode(activity.toJson()))
+          .toList(),
     );
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Schedule deleted'),
       ),
+    );
+  }
+
+  void _confirmDelete(int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete Schedule'),
+          content: Text('Do you want to delete the schedule?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context)
+                    .pop(); // Close the dialog without deleting
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context)
+                    .pop(); // Close the dialog and delete the schedule
+                _deleteActivity(index);
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -69,7 +101,7 @@ class _ActivityPageState extends State<ActivityPage> {
                 itemBuilder: (context, index) {
                   return ScheduledActivityCard(
                     activity: _scheduledActivities[index],
-                    onDelete: () => _deleteActivity(index),
+                    onDelete: () => _confirmDelete(index),
                   );
                 },
               ),
@@ -103,22 +135,28 @@ class ScheduledActivityCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Time: ${activity.selectedTime}'),
-            Text('Duration: ${activity.duration} minutes'),
             Text(
-              'Frequency: ${Frequency.values[activity.frequency].toString().split('.').last}',
+              'Time: ${activity.selectedTime}',
+              style: TextStyle(fontSize: 18),
             ),
+            Text('Duration: ${activity.duration} minutes',
+                style: TextStyle(fontSize: 18)),
+            Text(
+                'Frequency: ${Frequency.values[activity.frequency].toString().split('.').last}',
+                style: TextStyle(fontSize: 18)),
             if (activity.frequency == Frequency.SelectDays.index)
-              Text('Days: ${activity.selectedDays.join(', ')}'),
+              Text('Days: ${activity.selectedDays.join(', ')}',
+                  style: TextStyle(fontSize: 18)),
             SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                OutlinedButton(
+                IconButton(
                   onPressed: onDelete,
-                  child: Text(
-                    'Delete',
-                    style: TextStyle(color: Colors.red),
+                  icon: Icon(
+                    Icons.delete_outline_sharp,
+                    size: 40,
+                    color: Colors.black,
                   ),
                 ),
               ],
