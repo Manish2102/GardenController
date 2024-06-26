@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:gardenmate/Device_Screens/GC3_Monitor.dart';
+import 'package:gardenmate/Device_Screens/GC3_Monitor.dart'; // Import GC3MonitorPage
 import 'package:gardenmate/Device_Screens/GC3_Program.dart';
 import 'package:gardenmate/Pages/BottomNav_Bar.dart';
 import 'package:http/http.dart' as http;
@@ -184,15 +184,12 @@ class _GC3PageState extends State<GC3Page> {
                           context,
                           MaterialPageRoute(
                               builder: (context) => GC3MonitorPage(
-                                    motor1StartTime: motor1StartTime,
-                                    motor1Litres: motor1Litres,
-                                    motor1Manual: motor1Manual,
-                                    motor2StartTime: motor2StartTime,
-                                    motor2Litres: motor2Litres,
-                                    motor2Manual: motor2Manual,
-                                    motor3StartTime: motor3StartTime,
-                                    motor3Litres: motor3Litres,
-                                    motor3Manual: motor3Manual,
+                                    channel1Status:
+                                        _getMotorStatus(motor1Manual),
+                                    channel2Status:
+                                        _getMotorStatus(motor2Manual),
+                                    channel3Status:
+                                        _getMotorStatus(motor3Manual),
                                     soilMoisture: soilMoisture.toString(),
                                     isRaining: isRaining,
                                   )),

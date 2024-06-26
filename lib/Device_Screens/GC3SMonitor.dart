@@ -29,48 +29,51 @@ class GC3SMonitor extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            _buildStatusWidget('Channel 1 Status', channel1Status),
-            _buildStatusWidget('Channel 2 Status', channel2Status),
-            _buildStatusWidget('Channel 3 Status', channel3Status),
-            _buildStatusWidget('Soil Moisture', soilMoisture),
+            _buildStatusWidget(context, 'Channel 1 Status', channel1Status),
+            _buildStatusWidget(context, 'Channel 2 Status', channel2Status),
+            _buildStatusWidget(context, 'Channel 3 Status', channel3Status),
+            _buildStatusWidget(context, 'Soil Moisture', soilMoisture),
             _buildStatusWidget(
-                'Rain Detection', isRaining ? 'Rainy' : 'No Rain'),
-            _buildStatusWidget('Flow Meter', flowmeter),
+                context, 'Rain Detection', isRaining ? 'Rainy' : 'No Rain'),
+            _buildStatusWidget(context, 'Flow Meter', flowmeter),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatusWidget(String title, String value) {
-    return Container(
-      padding: EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: Offset(0, 3),
-          ),
-        ],
-      ),
-      margin: EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 5),
-          Text(
-            value,
-            style: TextStyle(color: Colors.blue),
-          ),
-        ],
+  Widget _buildStatusWidget(BuildContext context, String title, String value) {
+    return SizedBox(
+      width: MediaQuery.of(context).size.width,
+      child: Container(
+        padding: EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        margin: EdgeInsets.only(bottom: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 5),
+            Text(
+              value,
+              style: TextStyle(color: Colors.blue),
+            ),
+          ],
+        ),
       ),
     );
   }

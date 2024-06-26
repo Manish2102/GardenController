@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gardenmate/Device_Screens/GC1_Program.dart';
+import 'package:gardenmate/Device_Screens/GC3SMonitor.dart';
 import 'package:gardenmate/Device_Screens/GC3_Program.dart';
 import 'package:gardenmate/Pages/BottomNav_Bar.dart';
 
@@ -39,10 +39,12 @@ class _GC3SPageState extends State<GC3SPage> {
 
   @override
   Widget build(BuildContext context) {
+    final double buttonWidth = MediaQuery.of(context).size.width * 0.9;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 125, 153, 126),
-        title: Text('GC3'),
+        backgroundColor: Colors.green[200],
+        title: Text('GC3S'),
         actions: [
           IconButton(
             onPressed: () {
@@ -53,8 +55,7 @@ class _GC3SPageState extends State<GC3SPage> {
         ],
       ),
       bottomNavigationBar: buildBottomBar(context, 0, (index) {}),
-
-      backgroundColor: Colors.grey[200], // Set background color
+      backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: SingleChildScrollView(
@@ -62,42 +63,17 @@ class _GC3SPageState extends State<GC3SPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Card(
-                elevation: 5,
                 child: Padding(
-                  padding: EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(10.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Main Motor',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Status:',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            _getMotorStatus(mainMotorManual),
+                            'Main Motor',
                             style: TextStyle(
-                              color: _getStatusColor(mainMotorManual),
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Control:',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                                fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                           Switch(
                             value: mainMotorManual,
@@ -111,100 +87,119 @@ class _GC3SPageState extends State<GC3SPage> {
                           ),
                         ],
                       ),
+                      SizedBox(height: 10),
+                      _buildStatusWidget1(
+                          'Main Motor Status',
+                          _getMotorStatus(mainMotorManual),
+                          _getStatusColor(mainMotorManual)),
                     ],
                   ),
                 ),
               ),
               SizedBox(height: 20),
               Card(
-                elevation: 5,
                 child: Padding(
-                  padding: EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(10.0),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Channels',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      _buildChannelToggle('Channel 1', motor1Manual, (value) {
+                        setState(() {
+                          motor1Manual = value;
+                        });
+                      }),
                       SizedBox(height: 10),
-                      _buildChannelToggle(
-                        'Channel 1',
-                        motor1Manual,
-                        (value) {
-                          setState(() {
-                            motor1Manual = value;
-                          });
-                        },
-                      ),
+                      _buildChannelToggle('Channel 2', motor2Manual, (value) {
+                        setState(() {
+                          motor2Manual = value;
+                        });
+                      }),
                       SizedBox(height: 10),
-                      _buildChannelToggle(
-                        'Channel 2',
-                        motor2Manual,
-                        (value) {
-                          setState(() {
-                            motor2Manual = value;
-                          });
-                        },
-                      ),
-                      SizedBox(height: 10),
-                      _buildChannelToggle(
-                        'Channel 3',
-                        motor3Manual,
-                        (value) {
-                          setState(() {
-                            motor3Manual = value;
-                          });
-                        },
-                      ),
+                      _buildChannelToggle('Channel 3', motor3Manual, (value) {
+                        setState(() {
+                          motor3Manual = value;
+                        });
+                      }),
                     ],
                   ),
                 ),
               ),
               SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              Column(
                 children: [
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => GC3ProgramPage()),
-                      );
-                    },
-                    icon: Icon(Icons.settings),
-                    label: Text('Configuration'),
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(
-                          Color.fromARGB(255, 182, 197, 213)),
-                      padding: MaterialStateProperty.all(EdgeInsets.all(16)),
-                      shape: MaterialStateProperty.all(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                  SizedBox(
+                    width: buttonWidth,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => GC3ProgramPage()),
+                        );
+                      },
+                      icon: Icon(
+                        Icons.settings,
+                        color: Colors.black,
+                      ),
+                      label: Text(
+                        'Configuration',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 20,
                         ),
                       ),
-                      elevation: MaterialStateProperty.all(10),
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(
+                            Color.fromARGB(255, 182, 197, 213)),
+                        padding: MaterialStateProperty.all(EdgeInsets.all(16)),
+                        shape: MaterialStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        elevation: MaterialStateProperty.all(10),
+                      ),
                     ),
                   ),
-                  SizedBox(width: 20),
-                  ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: Icon(Icons.monitor),
-                    label: Text('Monitor'),
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(
-                          Color.fromARGB(255, 182, 197, 213)),
-                      padding: MaterialStateProperty.all(EdgeInsets.all(16)),
-                      shape: MaterialStateProperty.all(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                  SizedBox(height: 10),
+                  SizedBox(
+                    width: buttonWidth,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => GC3SMonitor(
+                                    channel1Status:
+                                        _getMotorStatus(motor1Manual),
+                                    channel2Status:
+                                        _getMotorStatus(motor2Manual),
+                                    channel3Status:
+                                        _getMotorStatus(motor3Manual),
+                                    soilMoisture: soilMoisture,
+                                    isRaining: isRaining,
+                                    flowmeter: flowmeter,
+                                  )),
+                        );
+                      },
+                      icon: Icon(
+                        Icons.monitor,
+                        color: Colors.black,
                       ),
-                      elevation: MaterialStateProperty.all(10),
+                      label: Text(
+                        'Monitor',
+                        style: TextStyle(color: Colors.black, fontSize: 20),
+                      ),
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(
+                            Color.fromARGB(255, 182, 197, 213)),
+                        padding: MaterialStateProperty.all(EdgeInsets.all(16)),
+                        shape: MaterialStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        elevation: MaterialStateProperty.all(10),
+                      ),
                     ),
                   ),
                 ],
@@ -217,16 +212,13 @@ class _GC3SPageState extends State<GC3SPage> {
   }
 
   Widget _buildChannelToggle(
-    String channelName,
-    bool isManual,
-    Function(bool) onChanged,
-  ) {
+      String channelName, bool isManual, Function(bool) onChanged) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           channelName,
-          style: TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         Switch(
           value: isManual,
@@ -235,6 +227,37 @@ class _GC3SPageState extends State<GC3SPage> {
           activeColor: Colors.green,
         ),
       ],
+    );
+  }
+
+  Widget _buildStatusWidget1(String title, String value, Color color) {
+    return Container(
+      padding: EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          Text(
+            value,
+            style: TextStyle(color: color),
+          ),
+        ],
+      ),
     );
   }
 
@@ -250,35 +273,7 @@ class _GC3SPageState extends State<GC3SPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Settings'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ProgramSettingsPage(),
-                      ),
-                    );
-                  },
-                  child: Text('Timer Settings'),
-                ),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancel'),
-            ),
-          ],
-        );
+        return GC3ProgramPage();
       },
     );
   }
