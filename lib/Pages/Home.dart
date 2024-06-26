@@ -2,9 +2,11 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:gardenmate/Device_Screens/GC1Screen.dart';
+import 'package:gardenmate/Device_Screens/GC3S_Screen.dart';
+import 'package:gardenmate/Device_Screens/GC3_Screen.dart';
 import 'package:gardenmate/Pages/My_Models_Page.dart';
 import 'package:gardenmate/Pages/Login_Page.dart';
-//import 'package:gardenmate/Pages/BottomNav_Bar.dart';
 import 'package:gardenmate/Pages/Provision_Page.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -95,7 +97,6 @@ class _ModelsPageState extends State<ModelsPage> {
           ),
         ],
       ),
-      //bottomNavigationBar: buildBottomBar(context, 0, (index) {}),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -120,17 +121,6 @@ class _ModelsPageState extends State<ModelsPage> {
               ),
             ),
             ListTile(
-              leading: Icon(Icons.logout),
-              title: Text('Logout'),
-              onTap: () async {
-                await FirebaseAuth.instance.signOut();
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => LogIn()),
-                  (Route<dynamic> route) => false,
-                );
-              },
-            ),
-            ListTile(
               leading: Icon(Icons.settings),
               title: Text('Provision'),
               onTap: () {
@@ -144,13 +134,26 @@ class _ModelsPageState extends State<ModelsPage> {
                 );
               },
             ),
+            ListTile(
+              leading: Icon(Icons.logout),
+              title: Text('Logout'),
+              onTap: () async {
+                await FirebaseAuth.instance.signOut();
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => LogIn()),
+                  (Route<dynamic> route) => false,
+                );
+              },
+            ),
           ],
         ),
       ),
       body: Container(
         alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SizedBox(height: 20),
             ValueListenableBuilder<bool>(
@@ -167,6 +170,13 @@ class _ModelsPageState extends State<ModelsPage> {
             ),
             SizedBox(height: 20),
             OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: EdgeInsets.symmetric(vertical: 14),
+                side: BorderSide(color: Colors.black, width: 2),
+              ),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -176,6 +186,81 @@ class _ModelsPageState extends State<ModelsPage> {
               child: Text(
                 'My Devices',
                 style: TextStyle(color: Colors.black, fontSize: 18),
+              ),
+            ),
+            SizedBox(height: 1),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(height: 12),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 14),
+                      side: BorderSide(color: Colors.black, width: 2),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                GC1Page(userName: displayName)),
+                      );
+                    },
+                    child: Text(
+                      'GC1',
+                      style: TextStyle(color: Colors.black, fontSize: 18),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 14),
+                      side: BorderSide(color: Colors.black, width: 2),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                GC3Page(userName: displayName)),
+                      );
+                    },
+                    child: Text(
+                      'GC3',
+                      style: TextStyle(color: Colors.black, fontSize: 18),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 14),
+                      side: BorderSide(color: Colors.black, width: 2),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                GC3SPage(userName: displayName)),
+                      );
+                    },
+                    child: Text(
+                      'GC3S',
+                      style: TextStyle(color: Colors.black, fontSize: 18),
+                    ),
+                  ),
+                ],
               ),
             ),
             if (qrText.isNotEmpty)
