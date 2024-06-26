@@ -107,6 +107,7 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
       duration: _duration,
       frequency: _frequency.index,
       selectedDays: _selectedDays,
+      channel: 0,
     );
 
     _scheduledActivities.add(newActivity);

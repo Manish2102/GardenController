@@ -1,9 +1,7 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:gardenmate/Device_Screens/GC1_Program.dart';
-import 'package:gardenmate/Pages/Scheduled_Activity.dart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:gardenmate/Pages/Scheduled_Activity.dart.dart';
 
 class ActivityPage extends StatefulWidget {
   final List<ScheduledActivity> scheduledActivities;
@@ -124,6 +122,15 @@ class ScheduledActivityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String frequencyText;
+
+    try {
+      frequencyText =
+          Frequency.values[activity.frequency].toString().split('.').last;
+    } catch (e) {
+      frequencyText = 'Unknown';
+    }
+
     return Card(
       elevation: 5,
       shape: RoundedRectangleBorder(
@@ -136,14 +143,16 @@ class ScheduledActivityCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
+              'Channel: ${activity.channel}',
+              style: TextStyle(fontSize: 18),
+            ),
+            Text(
               'Time: ${activity.selectedTime}',
               style: TextStyle(fontSize: 18),
             ),
             Text('Duration: ${activity.duration} minutes',
                 style: TextStyle(fontSize: 18)),
-            Text(
-                'Frequency: ${Frequency.values[activity.frequency].toString().split('.').last}',
-                style: TextStyle(fontSize: 18)),
+            Text('Frequency: $frequencyText', style: TextStyle(fontSize: 18)),
             if (activity.frequency == Frequency.SelectDays.index)
               Text('Days: ${activity.selectedDays.join(', ')}',
                   style: TextStyle(fontSize: 18)),
@@ -167,3 +176,5 @@ class ScheduledActivityCard extends StatelessWidget {
     );
   }
 }
+
+enum Frequency { Daily, Weekly, BiWeekly, Monthly, SelectDays }

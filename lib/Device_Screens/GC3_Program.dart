@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:gardenmate/Pages/Scheduled_Activity.dart.dart';
+import 'package:gardenmate/Pages/activity_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import 'package:gardenmate/Pages/BottomNav_Bar.dart';
+import 'package:intl/intl.dart'; // Import for DateFormat
 
 class GC3ProgramPage extends StatefulWidget {
   @override
@@ -227,8 +232,99 @@ class _GC3ProgramPageState extends State<GC3ProgramPage> {
     }
   }
 
-  void _saveChannelOptions(int channelNumber) {
-    // Implement your save functionality for the specific channel here
-    print('Saving options for Channel $channelNumber');
+  void _saveChannelOptions(int channelNumber) async {
+    // Validate duration
+    if (_duration <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please enter a valid duration.'),
+        ),
+      );
+      return;
+    }
+
+    // Validate frequency
+    if (_selectedHowOften.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please select a frequency.'),
+        ),
+      );
+      return;
+    }
+
+    // Validate selected days if frequency is Select Days
+    if (_selectedHowOften == 'Select Days' && _selectedDays.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please select at least one day.'),
+        ),
+      );
+      return;
+    }
+
+    // If all validations pass, proceed to save preferences
+    String formattedTime = _formatTimeOfDay(_selectedTime);
+    ScheduledActivity newActivity = ScheduledActivity(
+      selectedTime: formattedTime,
+      duration: _duration,
+      frequency: Frequency.values
+          .indexWhere((e) => e.toString().split('.').last == _selectedHowOften),
+      selectedDays: _selectedDays,
+      channel: channelNumber,
+    );
+
+    // Save to SharedPreferences
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String>? scheduledActivityStrings =
+        prefs.getStringList('scheduledActivities');
+    List<ScheduledActivity> scheduledActivities =
+        scheduledActivityStrings != null
+            ? scheduledActivityStrings
+                .map((jsonString) =>
+                    ScheduledActivity.fromJson(json.decode(jsonString)))
+                .toList()
+            : [];
+    scheduledActivities.add(newActivity);
+
+    await prefs.setStringList(
+      'scheduledActivities',
+      scheduledActivities
+          .map((activity) => json.encode(activity.toJson()))
+          .toList(),
+    );
+
+    // Navigate to ActivityPage
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ActivityPage(
+          scheduledActivities: scheduledActivities,
+          onScheduleSuccess: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Schedule successful'),
+              ),
+            );
+          },
+          selectedTime: '',
+        ),
+      ),
+    );
   }
+
+  String _formatTimeOfDay(TimeOfDay time) {
+    final now = DateTime.now();
+    final dt = DateTime(now.year, now.month, now.day, time.hour, time.minute);
+    final format = DateFormat.jm(); // or add optional locale
+    return format.format(dt);
+  }
+}
+
+// Enum for frequency options
+enum Frequency {
+  Daily,
+  AlternativeDays,
+  Weekly,
+  SelectDays,
 }
