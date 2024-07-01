@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gardenmate/Device_Screens/GC1_Monitor.dart';
 import 'package:gardenmate/Device_Screens/GC1_Program.dart';
 import 'package:gardenmate/Pages/BottomNav_Bar.dart';
@@ -15,6 +15,9 @@ class GC1Page extends StatefulWidget {
 }
 
 class _GC1PageState extends State<GC1Page> {
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
   bool isMainMotorOn = false;
   DateTime? motor1StartTime;
   int motor1Times = 0;
@@ -32,6 +35,32 @@ class _GC1PageState extends State<GC1Page> {
     super.initState();
     fetchMotorStatus();
     fetchSensorData();
+    initializeNotifications();
+  }
+
+  void initializeNotifications() {
+    final android = AndroidInitializationSettings('@mipmap/ic_launcher');
+    final darwin = DarwinInitializationSettings();
+    final settings = InitializationSettings(android: android, iOS: darwin);
+    flutterLocalNotificationsPlugin.initialize(settings);
+  }
+
+  Future<void> showNotification(String title, String body) async {
+    const androidDetails = AndroidNotificationDetails(
+      'your_channel_id',
+      'your_channel_name',
+      channelDescription: 'your_channel_description',
+      importance: Importance.max,
+      priority: Priority.high,
+      showWhen: false,
+    );
+    const darwinDetails = DarwinNotificationDetails();
+    const notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: darwinDetails,
+    );
+    await flutterLocalNotificationsPlugin.show(
+        0, title, body, notificationDetails);
   }
 
   Future<void> fetchMotorStatus() async {
@@ -40,6 +69,9 @@ class _GC1PageState extends State<GC1Page> {
       setState(() {
         isMainMotorOn = (status == 'on');
       });
+      if (isMainMotorOn) {
+        showNotification('Motor Status', 'Motor turned on');
+      }
     } catch (e) {
       print('Error fetching motor status: $e');
     }
@@ -91,6 +123,8 @@ class _GC1PageState extends State<GC1Page> {
         print('Motor turned ${status ? 'on' : 'off'}');
         logs.add(
             'Motor ${status ? 'turned on' : 'turned off'} - ${DateTime.now()}');
+        showNotification(
+            'Motor Status', 'Motor ${status ? 'turned on' : 'turned off'}');
       } else {
         print(
             'Failed to turn motor ${status ? 'on' : 'off'}: ${response.reasonPhrase}');
@@ -264,12 +298,15 @@ class _GC1PageState extends State<GC1Page> {
                       ));
                 },
                 icon: Icon(
-                  Icons.monitor,
+                  Icons.info,
                   color: Colors.black,
                 ),
                 label: Text(
                   'Monitor',
-                  style: TextStyle(color: Colors.black, fontSize: 20),
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
+                  ),
                 ),
                 style: ButtonStyle(
                   backgroundColor: MaterialStateProperty.all(
@@ -285,37 +322,24 @@ class _GC1PageState extends State<GC1Page> {
               ),
             ),
             SizedBox(height: 20),
-            // Container for displaying logs
-            Container(
-              margin: EdgeInsets.symmetric(vertical: 10),
-              padding: EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black87),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              width: double.infinity,
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Logs',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 10),
-                    SizedBox(
-                      height: 200,
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: logs.length,
-                        itemBuilder: (context, index) {
-                          return Text(logs[index]);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
+            Divider(
+              thickness: 2,
+              color: Colors.black,
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Logs:',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            Expanded(
+              child: ListView.builder(
+                itemCount: logs.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(logs[index]),
+                  );
+                },
               ),
             ),
           ],
@@ -324,118 +348,63 @@ class _GC1PageState extends State<GC1Page> {
     );
   }
 
-  Widget _buildStatusWidget(String title, String value, Color color) {
-    return Container(
-      padding: EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Text(
-            value,
-            style: TextStyle(color: color),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatTime(DateTime? time) {
-    if (time != null) {
-      return '${time.hour}:${time.minute}';
-    } else {
-      return 'N/A';
-    }
-  }
-
-  void _showSettingsDialog(BuildContext context) async {
-    final Map<String, dynamic>? result = await showDialog(
+  void _showSettingsDialog(BuildContext context) {
+    showDialog(
       context: context,
       builder: (BuildContext context) {
-        return ProgramSettingsPage();
+        TextEditingController iterationsController = TextEditingController();
+        TextEditingController durationController = TextEditingController();
+        TextEditingController gapController = TextEditingController();
+        return AlertDialog(
+          title: Text('Program Settings'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextField(
+                controller: iterationsController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: 'Iterations'),
+              ),
+              TextField(
+                controller: durationController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: 'Duration (minutes)'),
+              ),
+              TextField(
+                controller: gapController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: 'Gap (minutes)'),
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('CANCEL'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('SAVE'),
+              onPressed: () {
+                int iterations = int.parse(iterationsController.text);
+                int duration = int.parse(durationController.text);
+                int gap = int.parse(gapController.text);
+                updateMotorIterationTimings(iterations, duration, gap);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
       },
     );
-
-    if (result != null) {
-      TimeOfDay startTime = result['startTime'];
-      int duration = result['duration'];
-      int iterations = result['iterations'];
-      int gap = result['gap'];
-
-      int totalDuration = duration + gap;
-      DateTime scheduledStartTime = DateTime(
-        DateTime.now().year,
-        DateTime.now().month,
-        DateTime.now().day,
-        startTime.hour,
-        startTime.minute,
-      );
-
-      int minutesUntilNextStart =
-          scheduledStartTime.difference(DateTime.now()).inMinutes;
-
-      await Future.delayed(Duration(minutes: minutesUntilNextStart));
-
-      for (int i = 0; i < iterations; i++) {
-        await toggleMotor(true);
-        await Future.delayed(Duration(minutes: duration));
-        await toggleMotor(false);
-
-        if (i < iterations - 1) {
-          await Future.delayed(Duration(minutes: gap));
-        }
-      }
-
-      DateTime motorStoppingTime =
-          scheduledStartTime.add(Duration(minutes: totalDuration * iterations));
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content:
-              Text('Motor stopping time: ${_formatTime(motorStoppingTime)}'),
-        ),
-      );
-
-      setState(() {
-        motor1StartTime = motorStoppingTime;
-      });
-    }
   }
 
-  DateTime calculateMotorStoppingTime(
-      TimeOfDay startTime, int duration, int iterations, int gap) {
-    DateTime currentTime = DateTime.now();
-    DateTime scheduledTime = DateTime(
-      currentTime.year,
-      currentTime.month,
-      currentTime.day,
-      startTime.hour,
-      startTime.minute,
-    );
-
-    int totalDuration = (duration + gap) * iterations - gap;
-    DateTime motorStoppingTime =
-        scheduledTime.add(Duration(minutes: totalDuration));
-
-    return motorStoppingTime;
+  String _formatTime(DateTime dateTime) {
+    return '${_formatDigits(dateTime.hour)}:${_formatDigits(dateTime.minute)}';
   }
 
-  Future<void> deleteProgramSettings() async {
-    // Add code to delete program settings here
+  String _formatDigits(int n) {
+    return n.toString().padLeft(2, '0');
   }
 }

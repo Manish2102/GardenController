@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gardenmate/Device_Screens/GC3SMonitor.dart';
 import 'package:gardenmate/Device_Screens/GC3_Program.dart';
 import 'package:gardenmate/Pages/BottomNav_Bar.dart';
@@ -36,6 +37,60 @@ class _GC3SPageState extends State<GC3SPage> {
   bool isRaining = false;
   String soilMoisture = 'Dry';
   String flowmeter = '0';
+
+  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+
+  @override
+  void initState() {
+    super.initState();
+    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    initializeNotifications();
+  }
+
+  void initializeNotifications() async {
+    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+    var initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    var initializationSettingsDarwin = DarwinInitializationSettings(
+      requestSoundPermission: false,
+      requestBadgePermission: false,
+      requestAlertPermission: false,
+      onDidReceiveLocalNotification:
+          (int id, String? title, String? body, String? payload) async {},
+    );
+    var initializationSettings = InitializationSettings(
+        android: initializationSettingsAndroid,
+        iOS: initializationSettingsDarwin);
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onDidReceiveNotificationResponse:
+            (NotificationResponse response) async {
+      if (response.payload != null) {
+        debugPrint('notification payload: ${response.payload}');
+      }
+    });
+  }
+
+  Future<void> showNotification(String title, String body) async {
+    var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'your_channel_id',
+      'your_channel_name',
+      importance: Importance.max,
+      priority: Priority.high,
+      showWhen: false,
+    );
+    var iOSPlatformChannelSpecifics = DarwinNotificationDetails();
+    var platformChannelSpecifics = NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+        iOS: iOSPlatformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.show(
+      0,
+      title,
+      body,
+      platformChannelSpecifics,
+      payload: 'Default_Sound',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +136,10 @@ class _GC3SPageState extends State<GC3SPage> {
                               setState(() {
                                 mainMotorManual = value;
                               });
+                              if (value) {
+                                showNotification('Main Motor Status',
+                                    'Main Motor turned ON');
+                              }
                             },
                             activeTrackColor: Colors.green,
                             activeColor: Colors.green,
@@ -106,18 +165,30 @@ class _GC3SPageState extends State<GC3SPage> {
                         setState(() {
                           motor1Manual = value;
                         });
+                        if (value) {
+                          showNotification(
+                              'Channel 1 Status', 'Channel 1 turned ON');
+                        }
                       }),
                       SizedBox(height: 10),
                       _buildChannelToggle('Channel 2', motor2Manual, (value) {
                         setState(() {
                           motor2Manual = value;
                         });
+                        if (value) {
+                          showNotification(
+                              'Channel 2 Status', 'Channel 2 turned ON');
+                        }
                       }),
                       SizedBox(height: 10),
                       _buildChannelToggle('Channel 3', motor3Manual, (value) {
                         setState(() {
                           motor3Manual = value;
                         });
+                        if (value) {
+                          showNotification(
+                              'Channel 3 Status', 'Channel 3 turned ON');
+                        }
                       }),
                     ],
                   ),
@@ -273,7 +344,12 @@ class _GC3SPageState extends State<GC3SPage> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return GC3ProgramPage();
+        return AlertDialog(
+          content: Container(
+            width: double.maxFinite,
+            child: GC3ProgramPage(),
+          ),
+        );
       },
     );
   }
