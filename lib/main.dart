@@ -60,7 +60,6 @@ class GardenControllerApp extends StatelessWidget {
         AppRoutes.gc1program: (context) => ProgramSettingsPage(),
         AppRoutes.gc1monitor: (context) => MonitorPage(
               isMainMotorOn: isMainMotorOn,
-              motor1StartTime: motor1StartTime,
               soilMoisture: soilMoisture,
               isRaining: isRaining,
               logs: [],

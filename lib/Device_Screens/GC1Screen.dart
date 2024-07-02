@@ -28,7 +28,7 @@ class _GC1PageState extends State<GC1Page> {
   String soilMoisture = 'Dry'; // Initialize with default value
   List<String> logs = [];
 
-  final String esp32Url = 'http://192.168.1.10:5000'; // Updated base URL
+  final String esp32Url = 'http://192.168.1.10'; // Updated base URL
   final String motorEndpoint = '/motor/status'; // Updated endpoints
   final String sensorEndpoint = '/sensor/data'; // Updated endpoints
 
@@ -124,7 +124,10 @@ class _GC1PageState extends State<GC1Page> {
       if (response.statusCode == 200) {
         // Successfully controlled the motor
         print('Motor $action successful');
-        fetchMotorStatus(); // Refresh motor status after control
+        // Update motor status immediately after controlling
+        setState(() {
+          isMainMotorOn = (action == 'on');
+        });
       } else {
         // Handle error
         print('Failed to $action motor: ${response.statusCode}');
@@ -243,7 +246,6 @@ class _GC1PageState extends State<GC1Page> {
                     MaterialPageRoute(
                       builder: (context) => MonitorPage(
                         isMainMotorOn: isMainMotorOn,
-                        motor1StartTime: motor1StartTime,
                         soilMoisture: soilMoisture,
                         isRaining: isRaining,
                         logs: logs,

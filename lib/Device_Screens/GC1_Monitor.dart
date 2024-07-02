@@ -3,16 +3,16 @@ import 'package:gardenmate/Pages/BottomNav_Bar.dart';
 
 class MonitorPage extends StatelessWidget {
   final bool isMainMotorOn;
-  final DateTime? motor1StartTime;
   final String soilMoisture;
   final bool isRaining;
+  final List<String> logs;
 
   const MonitorPage({
     Key? key,
     required this.isMainMotorOn,
-    required this.motor1StartTime,
     required this.soilMoisture,
-    required this.isRaining, required List<String> logs,
+    required this.isRaining,
+    required this.logs,
   }) : super(key: key);
 
   @override
@@ -35,14 +35,9 @@ class MonitorPage extends StatelessWidget {
               isMainMotorOn ? Colors.green : Colors.red,
             ),
             _buildStatusWidget(
-              'Motor 1 Last Run Time',
-              _formatTime(motor1StartTime),
-              Colors.blue,
-            ),
-            _buildStatusWidget(
               'Soil Moisture',
               soilMoisture,
-              Colors.yellow,
+              Colors.blue,
             ),
             _buildStatusWidget(
               'Rain Detection',
@@ -85,13 +80,5 @@ class MonitorPage extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatTime(DateTime? time) {
-    if (time != null) {
-      return '${time.hour}:${time.minute}';
-    } else {
-      return 'N/A';
-    }
   }
 }
