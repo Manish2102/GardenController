@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -23,12 +25,12 @@ class _GC1PageState extends State<GC1Page> {
   int motor1Times = 0;
   bool motor1Manual = false;
   bool isRaining = false;
-  String soilMoisture = 'Wet';
+  String soilMoisture = 'Dry'; // Initialize with default value
   List<String> logs = [];
 
-  final String esp32Url = 'http://192.168.1.10:5000';
-  final String motorEndpoint = '/motorStatus';
-  final String sensorEndpoint = '/sensor_data';
+  final String esp32Url = 'http://192.168.1.10:5000'; // Updated base URL
+  final String motorEndpoint = '/motor/status'; // Updated endpoints
+  final String sensorEndpoint = '/sensor/data'; // Updated endpoints
 
   @override
   void initState() {
@@ -60,7 +62,11 @@ class _GC1PageState extends State<GC1Page> {
       iOS: darwinDetails,
     );
     await flutterLocalNotificationsPlugin.show(
-        0, title, body, notificationDetails);
+      0,
+      title,
+      body,
+      notificationDetails,
+    );
   }
 
   Future<void> fetchMotorStatus() async {
@@ -90,8 +96,8 @@ class _GC1PageState extends State<GC1Page> {
     try {
       final data = await getSensorData();
       setState(() {
-        isRaining = (data[0] == '1');
-        soilMoisture = data[1];
+        isRaining = (data['isRaining'] ?? false);
+        soilMoisture = data['soilMoisture'] ?? 'Dry';
       });
       if (isRaining && soilMoisture == 'Wet') {
         stopMotorAndNotify();
@@ -101,93 +107,37 @@ class _GC1PageState extends State<GC1Page> {
     }
   }
 
-  Future<List<String>> getSensorData() async {
+  Future<Map<String, dynamic>> getSensorData() async {
     final response = await http.get(Uri.parse('$esp32Url$sensorEndpoint'));
     if (response.statusCode == 200) {
-      return response.body.split(',');
+      return Map<String, dynamic>.from(json.decode(response.body));
     } else {
       throw Exception('Failed to fetch sensor data: ${response.reasonPhrase}');
     }
   }
 
-  Future<void> toggleMotor(bool status) async {
+  Future<void> controlMotor(String action) async {
+    String url = '$esp32Url/motor/$action';
+
     try {
-      final response = await http.post(
-        Uri.parse('$esp32Url$motorEndpoint'),
-        body: {'action': status ? 'on' : 'off'},
-      );
+      final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
-        setState(() {
-          isMainMotorOn = status;
-        });
-        print('Motor turned ${status ? 'on' : 'off'}');
-        logs.add(
-            'Motor ${status ? 'turned on' : 'turned off'} - ${DateTime.now()}');
-        showNotification(
-            'Motor Status', 'Motor ${status ? 'turned on' : 'turned off'}');
+        // Successfully controlled the motor
+        print('Motor $action successful');
+        fetchMotorStatus(); // Refresh motor status after control
       } else {
-        print(
-            'Failed to turn motor ${status ? 'on' : 'off'}: ${response.reasonPhrase}');
+        // Handle error
+        print('Failed to $action motor: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error turning motor ${status ? 'on' : 'off'}: $e');
+      // Handle network errors
+      print('Failed to $action motor: $e');
     }
-  }
-
-  void showMotorNotification(bool isMotorOn) {
-    final snackBar = SnackBar(
-      content: Text('Motor ${isMotorOn ? 'started' : 'stopped'}!'),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
-
-  void updateMotorIterationTimings(int iterations, int duration, int gap) {
-    DateTime currentTime = DateTime.now();
-    DateTime scheduledTime = DateTime(
-      currentTime.year,
-      currentTime.month,
-      currentTime.day,
-      currentTime.hour,
-      currentTime.minute,
-    );
-
-    List<DateTime> iterationTimings = [];
-    for (int i = 0; i < iterations; i++) {
-      DateTime iterationStartTime =
-          scheduledTime.add(Duration(minutes: i * (duration + gap)));
-      DateTime iterationEndTime =
-          iterationStartTime.add(Duration(minutes: duration));
-      iterationTimings.add(iterationStartTime);
-      iterationTimings.add(iterationEndTime);
-    }
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Iteration Timings'),
-          content: Column(
-            children: iterationTimings.map((timing) {
-              return Text(
-                  '${_formatTime(timing)} - ${_formatTime(timing.add(Duration(minutes: duration)))}');
-            }).toList(),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   void stopMotorAndNotify() {
     if (isMainMotorOn) {
-      toggleMotor(false);
+      controlMotor('off');
     }
     if (!motor1Manual) {
       final snackBar = SnackBar(
@@ -238,7 +188,7 @@ class _GC1PageState extends State<GC1Page> {
                     Switch(
                       value: isMainMotorOn,
                       onChanged: (value) {
-                        toggleMotor(value);
+                        controlMotor(value ? 'on' : 'off');
                       },
                       activeTrackColor: Colors.green,
                       activeColor: Colors.green,
@@ -253,10 +203,11 @@ class _GC1PageState extends State<GC1Page> {
               child: OutlinedButton.icon(
                 onPressed: () {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProgramSettingsPage(),
-                      ));
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ProgramSettingsPage(),
+                    ),
+                  );
                 },
                 icon: Icon(
                   Icons.settings,
@@ -288,17 +239,20 @@ class _GC1PageState extends State<GC1Page> {
               child: OutlinedButton.icon(
                 onPressed: () {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MonitorPage(
-                            isMainMotorOn: isMainMotorOn,
-                            motor1StartTime: motor1StartTime,
-                            soilMoisture: soilMoisture,
-                            isRaining: isRaining),
-                      ));
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MonitorPage(
+                        isMainMotorOn: isMainMotorOn,
+                        motor1StartTime: motor1StartTime,
+                        soilMoisture: soilMoisture,
+                        isRaining: isRaining,
+                        logs: logs,
+                      ),
+                    ),
+                  );
                 },
                 icon: Icon(
-                  Icons.info,
+                  Icons.monitor,
                   color: Colors.black,
                 ),
                 label: Text(
@@ -321,27 +275,6 @@ class _GC1PageState extends State<GC1Page> {
                 ),
               ),
             ),
-            SizedBox(height: 20),
-            Divider(
-              thickness: 2,
-              color: Colors.black,
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Logs:',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            Expanded(
-              child: ListView.builder(
-                itemCount: logs.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(logs[index]),
-                  );
-                },
-              ),
-            ),
           ],
         ),
       ),
@@ -352,45 +285,19 @@ class _GC1PageState extends State<GC1Page> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        TextEditingController iterationsController = TextEditingController();
-        TextEditingController durationController = TextEditingController();
-        TextEditingController gapController = TextEditingController();
         return AlertDialog(
-          title: Text('Program Settings'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              TextField(
-                controller: iterationsController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Iterations'),
-              ),
-              TextField(
-                controller: durationController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Duration (minutes)'),
-              ),
-              TextField(
-                controller: gapController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Gap (minutes)'),
-              ),
-            ],
+          title: Text('Settings'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('You can configure your settings here.'),
+              ],
+            ),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('CANCEL'),
+              child: Text('OK'),
               onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('SAVE'),
-              onPressed: () {
-                int iterations = int.parse(iterationsController.text);
-                int duration = int.parse(durationController.text);
-                int gap = int.parse(gapController.text);
-                updateMotorIterationTimings(iterations, duration, gap);
                 Navigator.of(context).pop();
               },
             ),
@@ -398,13 +305,5 @@ class _GC1PageState extends State<GC1Page> {
         );
       },
     );
-  }
-
-  String _formatTime(DateTime dateTime) {
-    return '${_formatDigits(dateTime.hour)}:${_formatDigits(dateTime.minute)}';
-  }
-
-  String _formatDigits(int n) {
-    return n.toString().padLeft(2, '0');
   }
 }

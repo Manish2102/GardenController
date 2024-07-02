@@ -12,7 +12,7 @@ class MonitorPage extends StatelessWidget {
     required this.isMainMotorOn,
     required this.motor1StartTime,
     required this.soilMoisture,
-    required this.isRaining,
+    required this.isRaining, required List<String> logs,
   }) : super(key: key);
 
   @override
