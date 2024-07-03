@@ -28,7 +28,7 @@ class _GC1PageState extends State<GC1Page> {
   String soilMoisture = 'Dry'; // Initialize with default value
   List<String> logs = [];
 
-  final String esp32Url = 'http://192.168.1.10'; // Updated base URL
+  final String esp32Url = 'http://192.168.1.10:5000'; // Updated base URL
   final String motorEndpoint = '/motor/status'; // Updated endpoints
   final String sensorEndpoint = '/sensor/data'; // Updated endpoints
 
@@ -77,6 +77,8 @@ class _GC1PageState extends State<GC1Page> {
       });
       if (isMainMotorOn) {
         showNotification('Motor Status', 'Motor turned on');
+      } else {
+        showNotification('Motor Status', 'Motor turned off');
       }
     } catch (e) {
       print('Error fetching motor status: $e');
@@ -128,6 +130,9 @@ class _GC1PageState extends State<GC1Page> {
         setState(() {
           isMainMotorOn = (action == 'on');
         });
+        // Show notification
+        showNotification(
+            'Motor Status', 'Motor turned ${action == 'on' ? 'on' : 'off'}');
       } else {
         // Handle error
         print('Failed to $action motor: ${response.statusCode}');

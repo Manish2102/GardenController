@@ -197,6 +197,8 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
                     ),
                   ),
                   SizedBox(width: 10),
+                  
+                  SizedBox(width: 10),
                   Text(
                     'Selected Time: ${_selectedTime.format(context)}',
                     style: TextStyle(fontSize: 16),
