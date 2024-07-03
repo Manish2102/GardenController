@@ -174,14 +174,28 @@ class _BluetoothProvisionState extends State<BluetoothProvision> {
                 ),
               ],
             ),
+            Divider(), // Divider line added
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: _startDiscovery,
               child: Text('Discover Devices'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: Size(double.infinity, 50), // Full width button
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.zero, // Sharp borders
+                ),
+              ),
             ),
+            SizedBox(height: 10),
             ElevatedButton(
               onPressed: _connectToPairedDevice,
               child: Text('Connect to paired device to chat'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: Size(double.infinity, 50), // Full width button
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.zero, // Sharp borders
+                ),
+              ),
             ),
             Expanded(
               child: ListView.builder(
