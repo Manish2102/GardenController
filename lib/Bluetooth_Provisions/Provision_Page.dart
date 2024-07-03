@@ -5,6 +5,8 @@ import 'package:android_intent/android_intent.dart';
 import 'package:android_intent/flag.dart';
 import 'dart:convert';
 
+import 'package:gardenmate/Bluetooth_Provisions/Discovered_Devices.dart'; // Import the new page
+
 class BluetoothProvision extends StatefulWidget {
   @override
   _BluetoothProvisionState createState() => _BluetoothProvisionState();
@@ -13,7 +15,6 @@ class BluetoothProvision extends StatefulWidget {
 class _BluetoothProvisionState extends State<BluetoothProvision> {
   bool isBluetoothOn = false;
   BluetoothConnection? connection;
-  List<BluetoothDevice> devicesList = [];
   BluetoothDevice? selectedDevice;
 
   @override
@@ -51,17 +52,6 @@ class _BluetoothProvisionState extends State<BluetoothProvision> {
       flags: <int>[Flag.FLAG_ACTIVITY_NEW_TASK],
     );
     intent.launch();
-  }
-
-  void _startDiscovery() async {
-    devicesList.clear();
-    FlutterBluetoothSerial.instance.startDiscovery().listen((r) {
-      setState(() {
-        devicesList.add(r.device);
-      });
-    }).onDone(() {
-      setState(() {});
-    });
   }
 
   void _connectToDevice(BluetoothDevice device) async {
@@ -116,6 +106,17 @@ class _BluetoothProvisionState extends State<BluetoothProvision> {
         );
       },
     );
+  }
+
+  Future<void> _discoverDevices() async {
+    final selectedDevice = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => DiscoveredDevicesPage()),
+    );
+
+    if (selectedDevice != null) {
+      _connectToDevice(selectedDevice);
+    }
   }
 
   void _openChat(BluetoothDevice device) {
@@ -177,7 +178,7 @@ class _BluetoothProvisionState extends State<BluetoothProvision> {
             Divider(), // Divider line added
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _startDiscovery,
+              onPressed: _discoverDevices,
               child: Text('Discover Devices'),
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(double.infinity, 50), // Full width button
@@ -195,23 +196,6 @@ class _BluetoothProvisionState extends State<BluetoothProvision> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.zero, // Sharp borders
                 ),
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: devicesList.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(devicesList[index].name ?? 'Unknown Device'),
-                    subtitle: Text(devicesList[index].address.toString()),
-                    onTap: () {
-                      setState(() {
-                        selectedDevice = devicesList[index];
-                      });
-                      _openChat(selectedDevice!);
-                    },
-                  );
-                },
               ),
             ),
           ],

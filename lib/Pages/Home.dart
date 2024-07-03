@@ -6,7 +6,7 @@ import 'package:gardenmate/Device_Screens/GC1Screen.dart';
 import 'package:gardenmate/Device_Screens/GC3S_Screen.dart';
 import 'package:gardenmate/Device_Screens/GC3_Screen.dart';
 import 'package:gardenmate/Pages/Login_Page.dart';
-import 'package:gardenmate/Pages/Provision_Page.dart';
+import 'package:gardenmate/Bluetooth_Provisions/Provision_Page.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:url_launcher/url_launcher.dart';
 
