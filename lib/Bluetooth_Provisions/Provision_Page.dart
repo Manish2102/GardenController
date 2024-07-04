@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:android_intent/android_intent.dart';
 import 'package:android_intent/flag.dart';
-import 'dart:convert';
-
-import 'package:gardenmate/Bluetooth_Provisions/Discovered_Devices.dart'; // Import the new page
+import 'package:gardenmate/Bluetooth_Provisions/Paired_device.dart';
 
 class BluetoothProvision extends StatefulWidget {
   @override
@@ -14,8 +12,6 @@ class BluetoothProvision extends StatefulWidget {
 
 class _BluetoothProvisionState extends State<BluetoothProvision> {
   bool isBluetoothOn = false;
-  BluetoothConnection? connection;
-  BluetoothDevice? selectedDevice;
 
   @override
   void initState() {
@@ -54,74 +50,9 @@ class _BluetoothProvisionState extends State<BluetoothProvision> {
     intent.launch();
   }
 
-  void _connectToDevice(BluetoothDevice device) async {
-    try {
-      connection = await BluetoothConnection.toAddress(device.address);
-      print('Connected to the device');
-
-      connection!.input!.listen((Uint8List data) {
-        print('Data incoming: ${ascii.decode(data)}');
-        connection!.output.add(data); // Sending data
-
-        if (ascii.decode(data).contains('!')) {
-          connection!.finish(); // Closing connection
-          print('Disconnecting by local host');
-        }
-      }).onDone(() {
-        print('Disconnected by remote request');
-      });
-    } catch (exception) {
-      print('Cannot connect, exception occurred');
-    }
-  }
-
-  void _connectToPairedDevice() async {
-    final pairedDevices =
-        await FlutterBluetoothSerial.instance.getBondedDevices();
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Select Paired Device'),
-          content: Container(
-            width: double.maxFinite,
-            height: 300,
-            child: ListView.builder(
-              itemCount: pairedDevices.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(pairedDevices[index].name ?? 'Unknown Device'),
-                  subtitle: Text(pairedDevices[index].address.toString()),
-                  onTap: () {
-                    setState(() {
-                      selectedDevice = pairedDevices[index];
-                    });
-                    _connectToDevice(selectedDevice!);
-                    Navigator.of(context).pop();
-                  },
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _discoverDevices() async {
-    final selectedDevice = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => DiscoveredDevicesPage()),
-    );
-
-    if (selectedDevice != null) {
-      _connectToDevice(selectedDevice);
-    }
-  }
-
-  void _openChat(BluetoothDevice device) {
+  void _navigateToPairedDevices() {
     Navigator.of(context).push(MaterialPageRoute(
-      builder: (context) => ChatPage(device: device),
+      builder: (context) => PairedDevicesPage(),
     ));
   }
 
@@ -178,19 +109,8 @@ class _BluetoothProvisionState extends State<BluetoothProvision> {
             Divider(), // Divider line added
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _discoverDevices,
-              child: Text('Discover Devices'),
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(double.infinity, 50), // Full width button
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.zero, // Sharp borders
-                ),
-              ),
-            ),
-            SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: _connectToPairedDevice,
-              child: Text('Connect to paired device to chat'),
+              onPressed: _navigateToPairedDevices,
+              child: Text('Connect to paired devices'),
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(double.infinity, 50), // Full width button
                 shape: RoundedRectangleBorder(
@@ -200,102 +120,6 @@ class _BluetoothProvisionState extends State<BluetoothProvision> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class ChatPage extends StatefulWidget {
-  final BluetoothDevice device;
-
-  ChatPage({required this.device});
-
-  @override
-  _ChatPageState createState() => _ChatPageState();
-}
-
-class _ChatPageState extends State<ChatPage> {
-  BluetoothConnection? connection;
-  List<String> messages = [];
-  final TextEditingController _textController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _connectToDevice();
-  }
-
-  void _connectToDevice() async {
-    try {
-      connection = await BluetoothConnection.toAddress(widget.device.address);
-      print('Connected to the device');
-
-      connection!.input!.listen((Uint8List data) {
-        setState(() {
-          messages.add('Remote: ${ascii.decode(data)}');
-        });
-        if (ascii.decode(data).contains('!')) {
-          connection!.finish();
-          print('Disconnecting by local host');
-        }
-      }).onDone(() {
-        print('Disconnected by remote request');
-      });
-    } catch (exception) {
-      print('Cannot connect, exception occurred');
-    }
-  }
-
-  void _sendMessage(String text) async {
-    if (connection != null && connection!.isConnected) {
-      connection!.output.add(Uint8List.fromList(utf8.encode(text)));
-      setState(() {
-        messages.add('Local: $text');
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Live chat with ${widget.device.name}'),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(messages[index]),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _textController,
-                    decoration: InputDecoration(
-                      hintText: 'Type your message...',
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.send),
-                  onPressed: () {
-                    _sendMessage(_textController.text);
-                    _textController.clear();
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
