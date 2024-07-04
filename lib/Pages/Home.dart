@@ -2,11 +2,11 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:gardenmate/Bluetooth_Provisions/Provision_Page.dart';
 import 'package:gardenmate/Device_Screens/GC1Screen.dart';
 import 'package:gardenmate/Device_Screens/GC3S_Screen.dart';
 import 'package:gardenmate/Device_Screens/GC3_Screen.dart';
 import 'package:gardenmate/Pages/Login_Page.dart';
-import 'package:gardenmate/Bluetooth_Provisions/Provision_Page.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -71,7 +71,7 @@ class _ModelsPageState extends State<ModelsPage> {
               if (value == 'wifi') {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => BluetoothProvision()),
+                  MaterialPageRoute(builder: (context) => MainPage()),
                 );
               } else if (value == 'bluetooth') {
                 openBluetoothSettings();
@@ -121,7 +121,7 @@ class _ModelsPageState extends State<ModelsPage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => BluetoothProvision()),
+                  MaterialPageRoute(builder: (context) => MainPage()),
                 );
               },
             ),
