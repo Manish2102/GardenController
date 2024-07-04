@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -25,18 +24,20 @@ class _GC1PageState extends State<GC1Page> {
   int motor1Times = 0;
   bool motor1Manual = false;
   bool isRaining = false;
-  String soilMoisture = 'Dry'; // Initialize with default value
+  String soilMoisture = 'Dry';
   List<String> logs = [];
 
-  final String esp32Url = 'http://192.168.1.10:5000'; // Updated base URL
-  final String motorEndpoint = '/motor/status'; // Updated endpoints
-  final String sensorEndpoint = '/sensor/data'; // Updated endpoints
+  final String esp32Url = 'http://192.168.1.10:5000';
+  final String motorEndpoint = '/motor/status';
+  final String sensorEndpoint = '/rain/status';
+  final String sensorEndpoint1 = '/soil/status';
 
   @override
   void initState() {
     super.initState();
     fetchMotorStatus();
     fetchSensorData();
+    fetchSensorData1();
     initializeNotifications();
   }
 
@@ -98,7 +99,6 @@ class _GC1PageState extends State<GC1Page> {
     try {
       final data = await getSensorData();
       setState(() {
-        isRaining = (data['isRaining'] ?? false);
         soilMoisture = data['soilMoisture'] ?? 'Dry';
       });
       if (isRaining && soilMoisture == 'Wet') {
@@ -114,9 +114,50 @@ class _GC1PageState extends State<GC1Page> {
     if (response.statusCode == 200) {
       return Map<String, dynamic>.from(json.decode(response.body));
     } else {
-      throw Exception('Failed to fetch sensor data: ${response.reasonPhrase}');
+      throw Exception('Failed to fetch motor status: ${response.reasonPhrase}');
     }
   }
+
+  /*Future<Map<String, dynamic>> getSensorData() async {
+    final response = await http.get(Uri.parse('$esp32Url$sensorEndpoint'));
+    if (response.statusCode == 200) {
+      return Map<String, dynamic>.from(json.decode(response.body));
+    } else {
+      throw Exception('Failed to fetch sensor data: ${response.reasonPhrase}');
+    }
+  }*/
+
+  Future<void> fetchSensorData1() async {
+    try {
+      final data = await getSensorData1();
+      setState(() {
+        isRaining = (data['isRaining'] ?? false);
+      });
+      if (isRaining && soilMoisture == 'Wet') {
+        stopMotorAndNotify();
+      }
+    } catch (e) {
+      print('Error fetching sensor data: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> getSensorData1() async {
+    final response = await http.get(Uri.parse('$esp32Url$sensorEndpoint1'));
+    if (response.statusCode == 200) {
+      return Map<String, dynamic>.from(json.decode(response.body));
+    } else {
+      throw Exception('Failed to fetch motor status: ${response.reasonPhrase}');
+    }
+  }
+
+  /*Future<Map<String, dynamic>> getSensorData1() async {
+    final response = await http.get(Uri.parse('$esp32Url$sensorEndpoint1'));
+    if (response.statusCode == 200) {
+      return Map<String, dynamic>.from(json.decode(response.body));
+    } else {
+      throw Exception('Failed to fetch sensor data: ${response.reasonPhrase}');
+    }
+  }*/
 
   Future<void> controlMotor(String action) async {
     String url = '$esp32Url/motor/$action';

@@ -4,6 +4,7 @@ import 'package:gardenmate/Pages/Activity_Page.dart';
 import 'package:gardenmate/Pages/BottomNav_Bar.dart';
 import 'package:gardenmate/Pages/Scheduled_Activity.dart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 enum Frequency { None, Daily, AlternativeDays, Weekly, SelectDays }
 
@@ -14,7 +15,8 @@ class ProgramSettingsPage extends StatefulWidget {
 
 class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
   late SharedPreferences _prefs;
-  TimeOfDay _selectedTime = TimeOfDay.now();
+  TimeOfDay _selectedStartTime = TimeOfDay.now();
+  TimeOfDay _selectedEndTime = TimeOfDay.now();
   int _duration = 1;
   Frequency _frequency = Frequency.None;
   List<String> _selectedDays = [];
@@ -50,9 +52,13 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
   void _loadPreferences() async {
     _prefs = await SharedPreferences.getInstance();
     setState(() {
-      final timeString = _prefs.getString('selectedTime');
-      if (timeString != null) {
-        _selectedTime = _parseTimeOfDay(timeString);
+      final startTimeString = _prefs.getString('selectedStartTime');
+      final endTimeString = _prefs.getString('selectedEndTime');
+      if (startTimeString != null) {
+        _selectedStartTime = _parseTimeOfDay(startTimeString);
+      }
+      if (endTimeString != null) {
+        _selectedEndTime = _parseTimeOfDay(endTimeString);
       }
       _duration = _prefs.getInt('duration') ?? 1;
       _frequency = Frequency.values[_prefs.getInt('frequency') ?? 0];
@@ -67,6 +73,44 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
             .toList();
       }
     });
+    _calculateDuration();
+  }
+
+  void _calculateDuration() {
+    final startDateTime = DateTime(DateTime.now().year, DateTime.now().month,
+        DateTime.now().day, _selectedStartTime.hour, _selectedStartTime.minute);
+    final endDateTime = DateTime(DateTime.now().year, DateTime.now().month,
+        DateTime.now().day, _selectedEndTime.hour, _selectedEndTime.minute);
+
+    setState(() {
+      _duration = endDateTime.difference(startDateTime).inMinutes;
+    });
+  }
+
+  Future<void> _sendScheduleToServer(
+      String start, String end, List<String> days) async {
+    final url = Uri.parse('http://192.168.1.10:5000/add_schedule');
+    try {
+      final response = await http.post(url, body: {
+        'start': start,
+        'end': end,
+        'days': json.encode(days),
+      });
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Schedule added to server successfully.')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add schedule to server.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 
   Future<void> _savePreferences() async {
@@ -101,9 +145,10 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
     }
 
     // If all validations pass, proceed to save preferences
-    String formattedTime = _formatTimeOfDay(_selectedTime);
+    String formattedStartTime = _formatTimeOfDay(_selectedStartTime);
+    String formattedEndTime = _formatTimeOfDay(_selectedEndTime);
     ScheduledActivity newActivity = ScheduledActivity(
-      selectedTime: formattedTime,
+      selectedTime: formattedStartTime,
       duration: _duration,
       frequency: _frequency.index,
       selectedDays: _selectedDays,
@@ -112,7 +157,8 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
 
     _scheduledActivities.add(newActivity);
 
-    await _prefs.setString('selectedTime', formattedTime);
+    await _prefs.setString('selectedStartTime', formattedStartTime);
+    await _prefs.setString('selectedEndTime', formattedEndTime);
     await _prefs.setInt('duration', _duration);
     await _prefs.setInt('frequency', _frequency.index);
     await _prefs.setStringList('selectedDays', _selectedDays);
@@ -121,6 +167,10 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
         _scheduledActivities
             .map((activity) => json.encode(activity.toJson()))
             .toList());
+
+    // Send schedule to the server
+    await _sendScheduleToServer(
+        formattedStartTime, formattedEndTime, _selectedDays);
 
     Navigator.pushReplacement(
       context,
@@ -140,14 +190,19 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
     );
   }
 
-  void _selectTime(BuildContext context) async {
+  void _selectTime(BuildContext context, bool isStartTime) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
-      initialTime: _selectedTime,
+      initialTime: isStartTime ? _selectedStartTime : _selectedEndTime,
     );
-    if (picked != null && picked != _selectedTime) {
+    if (picked != null) {
       setState(() {
-        _selectedTime = picked;
+        if (isStartTime) {
+          _selectedStartTime = picked;
+        } else {
+          _selectedEndTime = picked;
+        }
+        _calculateDuration();
       });
     }
   }
@@ -174,118 +229,156 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
                     color: Colors.black),
               ),
               SizedBox(height: 10),
-              Row(
-                children: [
-                  ElevatedButton(
-                    onPressed: () => _selectTime(context),
-                    child: Text(
-                      'Select Time',
-                      style:
-                          TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
-                    ),
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(
-                          Color.fromARGB(255, 194, 219, 247)),
-                      padding: MaterialStateProperty.all(EdgeInsets.all(12)),
-                      shape: MaterialStateProperty.all(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: BorderSide(color: Colors.black),
-                        ),
+              Container(
+                child: Column(
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => _selectTime(context, true),
+                      icon: Icon(Icons.access_time),
+                      label: Text(
+                        'Select Start Time',
+                        style: TextStyle(color: Colors.black),
                       ),
-                      elevation: MaterialStateProperty.all(5),
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(
+                            Color.fromARGB(255, 194, 219, 247)),
+                        padding: MaterialStateProperty.all(EdgeInsets.all(12)),
+                        shape: MaterialStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(color: Colors.black),
+                          ),
+                        ),
+                        elevation: MaterialStateProperty.all(5),
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 10),
-                  
-                  SizedBox(width: 10),
-                  Text(
-                    'Selected Time: ${_selectedTime.format(context)}',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ],
+                    SizedBox(height: 10),
+                    Text(
+                      'Selected Start Time: ${_selectedStartTime.format(context)}',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
               ),
               SizedBox(height: 20),
               Text(
-                'Duration (minutes):',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                'End Time:',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
               ),
               SizedBox(height: 10),
-              TextFormField(
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
+              Container(
+                child: Column(
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () => _selectTime(context, false),
+                      icon: Icon(Icons.access_time),
+                      label: Text(
+                        'Select End Time',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(
+                            Color.fromARGB(255, 194, 219, 247)),
+                        padding: MaterialStateProperty.all(EdgeInsets.all(12)),
+                        shape: MaterialStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(color: Colors.black),
+                          ),
+                        ),
+                        elevation: MaterialStateProperty.all(5),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Selected End Time: ${_selectedEndTime.format(context)}',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20),
+              Text(
+                'Duration: $_duration minutes',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
+              ),
+              SizedBox(height: 20),
+              Text(
+                'Frequency:',
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
+              ),
+              SizedBox(height: 10),
+              DropdownButtonFormField<Frequency>(
+                value: _frequency,
+                items: Frequency.values.map((Frequency frequency) {
+                  return DropdownMenuItem<Frequency>(
+                    value: frequency,
+                    child: Text(frequency.toString().split('.').last),
+                  );
+                }).toList(),
+                onChanged: (Frequency? newValue) {
                   setState(() {
-                    _duration = int.tryParse(value) ?? 0;
+                    _frequency = newValue!;
                   });
                 },
                 decoration: InputDecoration(
-                  hintText: 'Enter duration',
                   border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 20),
-              Text(
-                'How Often:',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 10),
-              InputDecorator(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<Frequency>(
-                    value: _frequency,
-                    onChanged: (Frequency? newValue) {
-                      setState(() {
-                        _frequency = newValue!;
-                      });
-                    },
-                    items: Frequency.values.map((Frequency frequency) {
-                      return DropdownMenuItem<Frequency>(
-                        value: frequency,
-                        child: Text(frequency.toString().split('.').last),
-                      );
-                    }).toList(),
-                  ),
                 ),
               ),
               if (_frequency == Frequency.SelectDays) ...[
                 SizedBox(height: 20),
                 Text(
                   'Select Days:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black),
                 ),
                 SizedBox(height: 10),
                 Wrap(
-                  children: _buildDayButtons(),
+                  spacing: 8.0,
+                  runSpacing: 4.0,
+                  children: _daysOfWeek.map((String day) {
+                    return FilterChip(
+                      label: Text(day),
+                      selected: _selectedDays.contains(day),
+                      onSelected: (bool selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedDays.add(day);
+                          } else {
+                            _selectedDays.remove(day);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
                 ),
               ],
               SizedBox(height: 20),
-              Center(
-                child: SizedBox(
-                  width: 200,
-                  child: OutlinedButton(
-                    onPressed: _savePreferences,
-                    child: Text(
-                      'Save',
-                      style: TextStyle(color: Colors.black, fontSize: 20),
-                    ),
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(
-                          Color.fromARGB(255, 194, 219, 247)),
-                      padding: MaterialStateProperty.all(EdgeInsets.all(12)),
-                      shape: MaterialStateProperty.all(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: BorderSide(color: Colors.black),
-                        ),
-                      ),
-                      elevation: MaterialStateProperty.all(5),
+              ElevatedButton(
+                onPressed: _savePreferences,
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(Colors.blue),
+                  padding: MaterialStateProperty.all(EdgeInsets.all(12)),
+                  shape: MaterialStateProperty.all(
+                    RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
+                ),
+                child: Text(
+                  'Save Preferences',
+                  style: TextStyle(color: Colors.white),
                 ),
               ),
             ],
@@ -293,28 +386,5 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
         ),
       ),
     );
-  }
-
-  List<Widget> _buildDayButtons() {
-    List<Widget> buttons = [];
-    for (String day in _daysOfWeek) {
-      buttons.add(
-        FilterChip(
-          label: Text(day),
-          selected: _selectedDays.contains(day),
-          onSelected: (selected) {
-            setState(() {
-              if (selected) {
-                _selectedDays.add(day);
-              } else {
-                _selectedDays.remove(day);
-              }
-            });
-          },
-        ),
-      );
-      buttons.add(SizedBox(width: 10));
-    }
-    return buttons;
   }
 }

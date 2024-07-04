@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gardenmate/Device_Screens/GC1Screen.dart';
-import 'package:gardenmate/Device_Screens/GC1_Monitor.dart';
+//import 'package:gardenmate/Device_Screens/GC1_Monitor.dart';
 import 'package:gardenmate/Device_Screens/GC1_Program.dart';
 import 'package:gardenmate/Device_Screens/GC3S_Screen.dart';
 import 'package:gardenmate/Device_Screens/GC3_Program.dart';
@@ -28,20 +28,15 @@ void main() async {
 class GardenControllerApp extends StatelessWidget {
   const GardenControllerApp({Key? key});
 
-  get isMainMotorOn => null;
-
-  get motor1StartTime => null;
-
-  get soilMoisture => null;
-
-  get isRaining => null;
-
   get name => null;
 
   get email => null;
 
   @override
   Widget build(BuildContext context) {
+    /*var isMainMotorOn;
+    var soilMoisture;
+    var isRaining;*/
     return MaterialApp(
       title: 'Garden Controller',
       theme: ThemeData(useMaterial3: true),
@@ -58,12 +53,12 @@ class GardenControllerApp extends StatelessWidget {
               userName: '',
             ),
         AppRoutes.gc1program: (context) => ProgramSettingsPage(),
-        AppRoutes.gc1monitor: (context) => MonitorPage(
+        /*AppRoutes.gc1monitor: (context) => MonitorPage(
               isMainMotorOn: isMainMotorOn,
               soilMoisture: soilMoisture,
               isRaining: isRaining,
               logs: [],
-            ),
+            ),*/
         AppRoutes.gc3page: (context) => GC3Page(userName: ''),
         AppRoutes.gc3program: (context) => GC3ProgramPage(),
         AppRoutes.gc3s: (context) => GC3SPage(userName: ''),
