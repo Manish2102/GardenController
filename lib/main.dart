@@ -15,6 +15,7 @@ import 'package:gardenmate/Pages/Splash_Page.dart';
 import 'package:gardenmate/Values/App_Routes.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {

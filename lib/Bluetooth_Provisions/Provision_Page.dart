@@ -43,7 +43,7 @@ class _MainPage extends State<MainPage> {
       if ((await FlutterBluetoothSerial.instance.isEnabled) ?? false) {
         return false;
       }
-      await Future.delayed(Duration(milliseconds: 0xDD));
+      await Future.delayed(const Duration(milliseconds: 0xDD));
       return true;
     }).then((_) {
       // Update the address field
@@ -87,10 +87,10 @@ class _MainPage extends State<MainPage> {
       body: Container(
         child: ListView(
           children: <Widget>[
-            Divider(),
+            const Divider(),
             Card(
               elevation: 5,
-              margin: EdgeInsets.all(10),
+              margin: const EdgeInsets.all(10),
               color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(2),
@@ -120,7 +120,7 @@ class _MainPage extends State<MainPage> {
             ),
             Card(
               elevation: 5,
-              margin: EdgeInsets.all(10),
+              margin: const EdgeInsets.all(10),
               color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(2),
@@ -144,7 +144,7 @@ class _MainPage extends State<MainPage> {
                   ),
                 ),
                 trailing: IconButton(
-                  icon: Icon(Icons.settings),
+                  icon: const Icon(Icons.settings),
                   onPressed: () {
                     FlutterBluetoothSerial.instance.openSettings();
                   },
@@ -153,7 +153,7 @@ class _MainPage extends State<MainPage> {
             ),
             Card(
               elevation: 5,
-              margin: EdgeInsets.all(10),
+              margin: const EdgeInsets.all(10),
               color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(2),
@@ -169,7 +169,7 @@ class _MainPage extends State<MainPage> {
                 ),
                 subtitle: Text(
                   _name,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontStyle: FontStyle.italic,
                     color: Colors.black54,
@@ -178,9 +178,9 @@ class _MainPage extends State<MainPage> {
                 onLongPress: null,
               ),
             ),
-            Divider(),
-            ListTile(
-                title: const Text(
+            const Divider(),
+            const ListTile(
+                title: Text(
               'Devices discovery and connection',
               style: TextStyle(fontWeight: FontWeight.bold),
             )),
@@ -201,7 +201,7 @@ class _MainPage extends State<MainPage> {
                       await Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) {
-                        return DiscoveryPage();
+                        return const DiscoveryPage();
                       },
                     ),
                   );
@@ -230,7 +230,7 @@ class _MainPage extends State<MainPage> {
                       await Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) {
-                        return SelectBondedDevicePage(checkAvailability: false);
+                        return const SelectBondedDevicePage(checkAvailability: false);
                       },
                     ),
                   );
@@ -244,7 +244,7 @@ class _MainPage extends State<MainPage> {
                 },
               ),
             ),
-            Divider(),
+            const Divider(),
           ],
         ),
       ),
@@ -278,7 +278,7 @@ class _MainPage extends State<MainPage> {
             content: Text("${ex.toString()}"),
             actions: <Widget>[
               TextButton(
-                child: Text("Close"),
+                child: const Text("Close"),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
