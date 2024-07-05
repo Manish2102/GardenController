@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 import 'package:gardenmate/Bluetooth_Provisions/BackgroundCollectionTask.dart';
 import 'package:gardenmate/Bluetooth_Provisions/Linechart.dart';
 import 'package:gardenmate/Bluetooth_Provisions/PaintStyle.dart';
@@ -142,4 +142,4 @@ class BackgroundCollectedPage extends StatelessWidget {
           ],
         ));
   }
-}
+}*/
