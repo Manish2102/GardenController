@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:gardenmate/Bluetooth_Provisions/BackgroundCollectionTask.dart';
@@ -20,11 +19,9 @@ class MainPage extends StatefulWidget {
 class _MainPage extends State<MainPage> {
   BluetoothState _bluetoothState = BluetoothState.UNKNOWN;
 
-  String _address = "...";
   String _name = "...";
 
   Timer? _discoverableTimeoutTimer;
-  int _discoverableTimeoutSecondsLeft = 0;
 
   BackgroundCollectingTask? _collectingTask;
 
@@ -50,11 +47,7 @@ class _MainPage extends State<MainPage> {
       return true;
     }).then((_) {
       // Update the address field
-      FlutterBluetoothSerial.instance.address.then((address) {
-        setState(() {
-          _address = address!;
-        });
-      });
+      FlutterBluetoothSerial.instance.address.then((address) {});
     });
 
     FlutterBluetoothSerial.instance.name.then((name) {
@@ -72,7 +65,6 @@ class _MainPage extends State<MainPage> {
 
         // Discoverable mode is disabled when Bluetooth gets disabled
         _discoverableTimeoutTimer = null;
-        _discoverableTimeoutSecondsLeft = 0;
       });
     });
   }
@@ -89,15 +81,25 @@ class _MainPage extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.green[100],
         title: const Text('Bluetooth Provision'),
       ),
       body: Container(
         child: ListView(
           children: <Widget>[
+            /*Divider(),
+            ListTile(title: const Text('General')),*/
             Divider(),
-            ListTile(title: const Text('General')),
+            ListTile(
+              title: const Text('Local adapter name'),
+              subtitle: Text(_name),
+              onLongPress: null,
+            ),
             SwitchListTile(
-              title: const Text('Enable Bluetooth'),
+              title: const Text(
+                'Enable Bluetooth',
+                style: TextStyle(fontSize: 25),
+              ),
               value: _bluetoothState.isEnabled,
               onChanged: (bool value) {
                 // Do the request and update with the true value then
@@ -124,16 +126,11 @@ class _MainPage extends State<MainPage> {
                 },
               ),
             ),
-            ListTile(
+            /*ListTile(
               title: const Text('Local adapter address'),
               subtitle: Text(_address),
-            ),
-            ListTile(
-              title: const Text('Local adapter name'),
-              subtitle: Text(_name),
-              onLongPress: null,
-            ),
-            ListTile(
+            ),*/
+            /*ListTile(
               title: _discoverableTimeoutSecondsLeft == 0
                   ? const Text("Discoverable")
                   : Text(
@@ -189,7 +186,7 @@ class _MainPage extends State<MainPage> {
                   )
                 ],
               ),
-            ),
+            ),*/
             Divider(),
             ListTile(title: const Text('Devices discovery and connection')),
             SwitchListTile(
