@@ -89,7 +89,8 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
 
   Future<void> _sendScheduleToServer(
       String start, String end, List<String> days) async {
-    final url = Uri.parse('http://192.168.1.10:5000/add_schedule');
+    final url = Uri.parse(
+        'http://192.168.1.10:5000/add_schedule?start=selectedStartTime&end=selectedEndTime&days=selectedDays');
     try {
       final response = await http.post(url, body: {
         'start': start,
