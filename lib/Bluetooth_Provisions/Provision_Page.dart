@@ -91,8 +91,9 @@ class _MainPage extends State<MainPage> {
             Card(
               elevation: 5,
               margin: EdgeInsets.all(10),
+              color: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(2),
               ),
               child: SwitchListTile(
                 title: const Text(
@@ -100,6 +101,7 @@ class _MainPage extends State<MainPage> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 value: _bluetoothState.isEnabled,
+                activeColor: Colors.green,
                 onChanged: (bool value) {
                   // Do the request and update with the true value then
                   future() async {
@@ -119,8 +121,9 @@ class _MainPage extends State<MainPage> {
             Card(
               elevation: 5,
               margin: EdgeInsets.all(10),
+              color: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(2),
               ),
               child: ListTile(
                 title: const Text(
@@ -135,7 +138,7 @@ class _MainPage extends State<MainPage> {
                   _bluetoothState.isEnabled ? 'On' : 'Off',
                   style: TextStyle(
                     fontSize: 18,
-                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.bold,
                     color:
                         _bluetoothState.isEnabled ? Colors.green : Colors.red,
                   ),
@@ -151,8 +154,9 @@ class _MainPage extends State<MainPage> {
             Card(
               elevation: 5,
               margin: EdgeInsets.all(10),
+              color: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(2),
               ),
               child: ListTile(
                 title: const Text(
@@ -175,10 +179,15 @@ class _MainPage extends State<MainPage> {
               ),
             ),
             Divider(),
-            ListTile(title: const Text('Devices discovery and connection')),
+            ListTile(
+                title: const Text(
+              'Devices discovery and connection',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            )),
             ListTile(
               title: ElevatedButton(
                 style: ElevatedButton.styleFrom(
+                  shadowColor: Colors.black,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(0),
                   ),
