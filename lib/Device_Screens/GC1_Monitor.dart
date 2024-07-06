@@ -1,19 +1,60 @@
 import 'package:flutter/material.dart';
-import 'package:gardenmate/Pages/BottomNav_Bar.dart';
+import 'package:http/http.dart' as http;
 
-class MonitorPage extends StatelessWidget {
-  final bool isMainMotorOn;
-  final String soilMoisture;
-  final bool isRaining;
-  final List<String> logs;
+class MonitorPage extends StatefulWidget {
+  @override
+  _MonitorPageState createState() => _MonitorPageState();
+}
 
-  const MonitorPage({
-    Key? key,
-    required this.isMainMotorOn,
-    required this.soilMoisture,
-    required this.isRaining,
-    required this.logs,
-  }) : super(key: key);
+class _MonitorPageState extends State<MonitorPage> {
+  bool isMainMotorOn = false;
+  String soilMoisture = 'Unknown';
+  bool isRaining = false;
+  List<String> logs = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Call the function to update status once the widget is initialized
+    updateStatus();
+  }
+
+  // Function to fetch sensor details and motor status from the server
+  Future<void> updateStatus() async {
+    final serverIp = 'http://your-server-ip'; // Replace with your actual server IP
+    final sensors = ['motor', 'rain', 'soil'];
+
+    try {
+      for (var sensor in sensors) {
+        final response = await http.get(Uri.parse('$serverIp/$sensor/status'));
+
+        if (response.statusCode == 200) {
+          final data = response.body;
+          switch (sensor) {
+            case 'motor':
+              setState(() {
+                isMainMotorOn = data == 'on';
+              });
+              break;
+            case 'rain':
+              setState(() {
+                isRaining = data == 'rainy';
+              });
+              break;
+            case 'soil':
+              setState(() {
+                soilMoisture = data;
+              });
+              break;
+          }
+        } else {
+          print('Failed to fetch $sensor status: ${response.statusCode}');
+        }
+      }
+    } catch (error) {
+      print('Error fetching sensor details: $error');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +64,6 @@ class MonitorPage extends StatelessWidget {
         title: Text('Monitor'),
         centerTitle: true,
       ),
-      bottomNavigationBar: buildBottomBar(context, 0, (index) {}),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(

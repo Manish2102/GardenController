@@ -290,12 +290,7 @@ class _GC1PageState extends State<GC1Page> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => MonitorPage(
-                        isMainMotorOn: isMainMotorOn,
-                        soilMoisture: soilMoisture,
-                        isRaining: isRaining,
-                        logs: logs,
-                      ),
+                      builder: (context) => MonitorPage(),
                     ),
                   );
                 },
