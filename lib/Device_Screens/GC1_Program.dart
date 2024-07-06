@@ -200,7 +200,7 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.green[200],
+        backgroundColor: Colors.green[100],
         title: Text('Program Settings'),
       ),
       bottomNavigationBar: buildBottomBar(context, 0, (index) {}),

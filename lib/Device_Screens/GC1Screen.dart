@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -32,6 +33,9 @@ class _GC1PageState extends State<GC1Page> {
   final String motorEndpoint = '/motor/status';
   final String sensorEndpoint = '/rain/status';
   final String sensorEndpoint1 = '/soil/status';
+  final String logsEndpoint = '/logs';
+
+  Timer? periodicTimer;
 
   @override
   void initState() {
@@ -39,7 +43,17 @@ class _GC1PageState extends State<GC1Page> {
     fetchMotorStatus(); // Fetch initial motor status from server
     fetchSensorData(); // Fetch initial sensor data
     fetchSensorData1(); // Fetch initial sensor data
+    fetchLogs(); // Fetch initial logs data
     initializeNotifications();
+
+    // Start periodic checks
+    startPeriodicCheck();
+  }
+
+  @override
+  void dispose() {
+    periodicTimer?.cancel();
+    super.dispose();
   }
 
   void initializeNotifications() {
@@ -76,12 +90,9 @@ class _GC1PageState extends State<GC1Page> {
       final status = await getMotorStatus();
       setState(() {
         isMainMotorOn = (status == 'on');
+        logs.add(
+            'Motor ${status == 'on' ? 'turned on' : 'turned off'} at ${DateTime.now()}');
       });
-      if (isMainMotorOn) {
-        showNotification('Motor Status', 'Motor turned on');
-      } else {
-        showNotification('Motor Status', 'Motor turned off');
-      }
     } catch (e) {
       print('Error fetching motor status: $e');
     }
@@ -90,7 +101,8 @@ class _GC1PageState extends State<GC1Page> {
   Future<String> getMotorStatus() async {
     final response = await http.get(Uri.parse('$esp32Url$motorEndpoint'));
     if (response.statusCode == 200) {
-      return response.body;
+      final Map<String, dynamic> data = json.decode(response.body);
+      return data['status'];
     } else {
       throw Exception('Failed to fetch motor status: ${response.reasonPhrase}');
     }
@@ -115,7 +127,7 @@ class _GC1PageState extends State<GC1Page> {
     if (response.statusCode == 200) {
       return Map<String, dynamic>.from(json.decode(response.body));
     } else {
-      throw Exception('Failed to fetch motor status: ${response.reasonPhrase}');
+      throw Exception('Failed to fetch sensor data: ${response.reasonPhrase}');
     }
   }
 
@@ -138,7 +150,27 @@ class _GC1PageState extends State<GC1Page> {
     if (response.statusCode == 200) {
       return Map<String, dynamic>.from(json.decode(response.body));
     } else {
-      throw Exception('Failed to fetch motor status: ${response.reasonPhrase}');
+      throw Exception('Failed to fetch sensor data: ${response.reasonPhrase}');
+    }
+  }
+
+  Future<void> fetchLogs() async {
+    try {
+      final logData = await getLogs();
+      setState(() {
+        logs = List<String>.from(logData['logs']);
+      });
+    } catch (e) {
+      print('Error fetching logs: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> getLogs() async {
+    final response = await http.get(Uri.parse('$esp32Url$logsEndpoint'));
+    if (response.statusCode == 200) {
+      return Map<String, dynamic>.from(json.decode(response.body));
+    } else {
+      throw Exception('Failed to fetch logs: ${response.reasonPhrase}');
     }
   }
 
@@ -153,6 +185,8 @@ class _GC1PageState extends State<GC1Page> {
         // Update motor status immediately after controlling
         setState(() {
           isMainMotorOn = (action == 'on');
+          logs.add(
+              'Motor turned ${action == 'on' ? 'on' : 'off'} manually at ${DateTime.now()}');
         });
         // Show notification
         showNotification(
@@ -180,11 +214,51 @@ class _GC1PageState extends State<GC1Page> {
     }
   }
 
+  // Function to start periodic motor status check
+  void startPeriodicCheck() {
+    const Duration checkInterval = Duration(seconds: 30); // Adjust as needed
+
+    // Timer for periodic check
+    periodicTimer = Timer.periodic(checkInterval, (Timer timer) {
+      fetchMotorStatus(); // Fetch motor status periodically
+      fetchLogs(); // Fetch logs periodically
+    });
+  }
+
+  void clearLogs() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Clear Logs'),
+          content: Text('Are you sure you want to delete all logs?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                setState(() {
+                  logs.clear();
+                });
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.green[200],
+        backgroundColor: Colors.green[100],
         title: Text('GC1'),
         actions: [
           IconButton(
@@ -203,6 +277,7 @@ class _GC1PageState extends State<GC1Page> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Card(
+              color: Colors.green[50],
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -219,8 +294,8 @@ class _GC1PageState extends State<GC1Page> {
                     ),
                     Switch(
                       value: isMainMotorOn,
-                      onChanged: (value) {
-                        controlMotor(value ? 'on' : 'off');
+                      onChanged: (value) async {
+                        await controlMotor(value ? 'on' : 'off');
                       },
                       activeTrackColor: Colors.green,
                       activeColor: Colors.green,
@@ -298,6 +373,59 @@ class _GC1PageState extends State<GC1Page> {
                     ),
                   ),
                   elevation: MaterialStateProperty.all(10),
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Logs',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                TextButton(
+                  onPressed: clearLogs,
+                  child: Text(
+                    'Clear',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ],
+            ),
+            Container(
+              width: double.infinity,
+              height: 200, // Fixed height for the container
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: logs.map((log) {
+                    return Container(
+                      margin: EdgeInsets.only(bottom: 8),
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            spreadRadius: 1,
+                            blurRadius: 3,
+                            offset: Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        log,
+                        style: TextStyle(fontSize: 14, color: Colors.black),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
             ),

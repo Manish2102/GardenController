@@ -115,26 +115,29 @@ class _ModelsPageState extends State<ModelsPage> {
                 ),
               ),
             ),
+            _buildDrawerButton('Provision', Icons.settings, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MainPage()),
+              );
+            }),
+            _buildDrawerButton('About Us', Icons.info_outline, () {
+              // Handle 'About Us' button action
+            }),
+            _buildDrawerButton('Terms and Conditions', Icons.description, () {
+              // Handle 'Terms and Conditions' button action
+            }),
+            _buildDrawerButton('Help and Support', Icons.help_outline, () {
+              // Handle 'Help and Support' button action
+            }),
+            _buildDrawerButton('Logout', Icons.logout, () async {
+              await _showLogoutConfirmationDialog();
+            }),
             ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('Provision'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => MainPage()),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.logout),
-              title: Text('Logout'),
-              onTap: () async {
-                await FirebaseAuth.instance.signOut();
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => LogIn()),
-                  (Route<dynamic> route) => false,
-                );
-              },
+              title: Text(
+                'App Version: 1.0.0', // Replace with actual version
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
@@ -151,6 +154,7 @@ class _ModelsPageState extends State<ModelsPage> {
               valueListenable: connectionStatus,
               builder: (context, isConnected, child) {
                 return Card(
+                  color: Colors.green[50],
                   child: ListTile(
                     leading: Icon(Icons.wifi,
                         color: isConnected ? Colors.green : Colors.red),
@@ -160,68 +164,29 @@ class _ModelsPageState extends State<ModelsPage> {
               },
             ),
             SizedBox(height: 20),
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding: EdgeInsets.symmetric(vertical: 14),
-                side: BorderSide(color: Colors.black, width: 2),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => GC1Page(userName: displayName)),
-                );
-              },
-              child: Text(
-                'GC1',
-                style: TextStyle(color: Colors.black, fontSize: 18),
-              ),
-            ),
+            _buildCardButton('GC1', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => GC1Page(userName: displayName)),
+              );
+            }),
             SizedBox(height: 12),
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding: EdgeInsets.symmetric(vertical: 14),
-                side: BorderSide(color: Colors.black, width: 2),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => GC3Page(userName: displayName)),
-                );
-              },
-              child: Text(
-                'GC3',
-                style: TextStyle(color: Colors.black, fontSize: 18),
-              ),
-            ),
+            _buildCardButton('GC3', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => GC3Page(userName: displayName)),
+              );
+            }),
             SizedBox(height: 12),
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding: EdgeInsets.symmetric(vertical: 14),
-                side: BorderSide(color: Colors.black, width: 2),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => GC3SPage(userName: displayName)),
-                );
-              },
-              child: Text(
-                'GC3S',
-                style: TextStyle(color: Colors.black, fontSize: 18),
-              ),
-            ),
+            _buildCardButton('GC3S', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => GC3SPage(userName: displayName)),
+              );
+            }),
             if (qrText.isNotEmpty)
               ElevatedButton(
                 onPressed: () {
@@ -240,6 +205,78 @@ class _ModelsPageState extends State<ModelsPage> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  Widget _buildCardButton(String title, VoidCallback onPressed) {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      elevation: 5,
+      child: InkWell(
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          child: Center(
+            child: Text(
+              title,
+              style: TextStyle(color: Colors.black, fontSize: 18),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerButton(
+      String title, IconData icon, VoidCallback onPressed) {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      elevation: 5,
+      child: InkWell(
+        onTap: () {
+          if (title == 'Logout') {
+            _showLogoutConfirmationDialog();
+          } else {
+            onPressed();
+          }
+        },
+        child: ListTile(
+          leading: Icon(icon),
+          title: Text(title),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showLogoutConfirmationDialog() async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Logout'),
+          content: Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => LogIn()),
+                  (Route<dynamic> route) => false,
+                );
+              },
+              child: Text('Logout'),
+            ),
+          ],
+        );
+      },
     );
   }
 

@@ -218,37 +218,6 @@ class _GC3PageState extends State<GC3Page> {
                   ),
                 ],
               ),
-              SizedBox(height: 20),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Logs',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      SizedBox(height: 10),
-                      Container(
-                        height: 200,
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: logs
-                                .map((log) => Text(
-                                      log,
-                                      style: TextStyle(color: Colors.black),
-                                    ))
-                                .toList(),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
             ],
           ),
         ),
