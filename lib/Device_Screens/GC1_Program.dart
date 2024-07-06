@@ -5,6 +5,7 @@ import 'package:gardenmate/Pages/BottomNav_Bar.dart';
 import 'package:gardenmate/Pages/Scheduled_Activity.dart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart'; // Import the intl package
 
 class ProgramSettingsPage extends StatefulWidget {
   @override
@@ -38,11 +39,11 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
     final now = DateTime.now();
     final formattedDateTime =
         DateTime(now.year, now.month, now.day, time.hour, time.minute);
-    return formattedDateTime.toIso8601String();
+    return DateFormat.Hm().format(formattedDateTime); // 24-hour format
   }
 
   TimeOfDay _parseTimeOfDay(String timeString) {
-    final dateTime = DateTime.parse(timeString);
+    final dateTime = DateFormat.Hm().parseStrict(timeString);
     return TimeOfDay(hour: dateTime.hour, minute: dateTime.minute);
   }
 
@@ -84,15 +85,11 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
   }
 
   Future<void> _sendScheduleToServer(
-      String start, String end, List<String> days) async {
+      String start, String end, List<String> days, int duration) async {
     final url = Uri.parse(
-        'http://192.168.1.10:5000/add_schedule?start=selectedStartTime&end=selectedEndTime&days=selectedDays');
+        'http://192.168.1.10:5000/add_schedule?start=$start&end=$end&days=${days.join(',')}&duration=$duration');
     try {
-      final response = await http.post(url, body: {
-        'start': start,
-        'end': end,
-        'days': json.encode(days),
-      });
+      final response = await http.get(url);
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -144,6 +141,12 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
 
     _scheduledActivities.add(newActivity);
 
+    // Print details to the debug console
+    print('Start Time: ${formattedStartTime}');
+    print('End Time: ${formattedEndTime}');
+    print('Duration: $_duration minutes');
+    print('Days: ${_selectedDays.join(', ')}');
+
     await _prefs.setString('selectedStartTime', formattedStartTime);
     await _prefs.setString('selectedEndTime', formattedEndTime);
     await _prefs.setInt('duration', _duration);
@@ -156,7 +159,7 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
 
     // Send schedule to the server
     await _sendScheduleToServer(
-        formattedStartTime, formattedEndTime, _selectedDays);
+        formattedStartTime, formattedEndTime, _selectedDays, _duration);
 
     Navigator.pushReplacement(
       context,
@@ -240,7 +243,7 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
                     ),
                     SizedBox(height: 10),
                     Text(
-                      'Selected Start Time: ${_selectedStartTime.format(context)}',
+                      'Selected Start Time: ${_formatTimeOfDay(_selectedStartTime)}',
                       style: TextStyle(fontSize: 16),
                     ),
                   ],
@@ -280,7 +283,7 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
                     ),
                     SizedBox(height: 10),
                     Text(
-                      'Selected End Time: ${_selectedEndTime.format(context)}',
+                      'Selected End Time: ${_formatTimeOfDay(_selectedEndTime)}',
                       style: TextStyle(fontSize: 16),
                     ),
                   ],
