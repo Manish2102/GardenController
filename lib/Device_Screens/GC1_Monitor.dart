@@ -21,7 +21,8 @@ class _MonitorPageState extends State<MonitorPage> {
 
   // Function to fetch sensor details and motor status from the server
   Future<void> updateStatus() async {
-    final serverIp = 'http://your-server-ip'; // Replace with your actual server IP
+    final serverIp =
+        'http://192.168.1.10:5000'; // Replace with your actual server IP
     final sensors = ['motor', 'rain', 'soil'];
 
     try {
