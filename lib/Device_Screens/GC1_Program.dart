@@ -6,8 +6,6 @@ import 'package:gardenmate/Pages/Scheduled_Activity.dart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
-enum Frequency { None, Daily, AlternativeDays, Weekly, SelectDays }
-
 class ProgramSettingsPage extends StatefulWidget {
   @override
   _ProgramSettingsPageState createState() => _ProgramSettingsPageState();
@@ -18,7 +16,6 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
   TimeOfDay _selectedStartTime = TimeOfDay.now();
   TimeOfDay _selectedEndTime = TimeOfDay.now();
   int _duration = 1;
-  Frequency _frequency = Frequency.None;
   List<String> _selectedDays = [];
   List<String> _daysOfWeek = [
     'Monday',
@@ -61,7 +58,6 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
         _selectedEndTime = _parseTimeOfDay(endTimeString);
       }
       _duration = _prefs.getInt('duration') ?? 1;
-      _frequency = Frequency.values[_prefs.getInt('frequency') ?? 0];
       _selectedDays = _prefs.getStringList('selectedDays') ?? [];
 
       final List<String>? scheduledActivityStrings =
@@ -125,18 +121,8 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
       return;
     }
 
-    // Validate frequency
-    if (_frequency == Frequency.None) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please select a frequency.'),
-        ),
-      );
-      return;
-    }
-
-    // Validate selected days if frequency is SelectDays
-    if (_frequency == Frequency.SelectDays && _selectedDays.isEmpty) {
+    // Validate selected days
+    if (_selectedDays.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Please select at least one day.'),
@@ -151,7 +137,7 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
     ScheduledActivity newActivity = ScheduledActivity(
       selectedTime: formattedStartTime,
       duration: _duration,
-      frequency: _frequency.index,
+      frequency: 0, // Frequency is not used, set to 0
       selectedDays: _selectedDays,
       channel: 0,
     );
@@ -161,7 +147,6 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
     await _prefs.setString('selectedStartTime', formattedStartTime);
     await _prefs.setString('selectedEndTime', formattedEndTime);
     await _prefs.setInt('duration', _duration);
-    await _prefs.setInt('frequency', _frequency.index);
     await _prefs.setStringList('selectedDays', _selectedDays);
     await _prefs.setStringList(
         'scheduledActivities',
@@ -311,60 +296,32 @@ class _ProgramSettingsPageState extends State<ProgramSettingsPage> {
               ),
               SizedBox(height: 20),
               Text(
-                'Frequency:',
+                'Select Days:',
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.black),
               ),
               SizedBox(height: 10),
-              DropdownButtonFormField<Frequency>(
-                value: _frequency,
-                items: Frequency.values.map((Frequency frequency) {
-                  return DropdownMenuItem<Frequency>(
-                    value: frequency,
-                    child: Text(frequency.toString().split('.').last),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 4.0,
+                children: _daysOfWeek.map((String day) {
+                  return FilterChip(
+                    label: Text(day),
+                    selected: _selectedDays.contains(day),
+                    onSelected: (bool selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedDays.add(day);
+                        } else {
+                          _selectedDays.remove(day);
+                        }
+                      });
+                    },
                   );
                 }).toList(),
-                onChanged: (Frequency? newValue) {
-                  setState(() {
-                    _frequency = newValue!;
-                  });
-                },
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                ),
               ),
-              if (_frequency == Frequency.SelectDays) ...[
-                SizedBox(height: 20),
-                Text(
-                  'Select Days:',
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black),
-                ),
-                SizedBox(height: 10),
-                Wrap(
-                  spacing: 8.0,
-                  runSpacing: 4.0,
-                  children: _daysOfWeek.map((String day) {
-                    return FilterChip(
-                      label: Text(day),
-                      selected: _selectedDays.contains(day),
-                      onSelected: (bool selected) {
-                        setState(() {
-                          if (selected) {
-                            _selectedDays.add(day);
-                          } else {
-                            _selectedDays.remove(day);
-                          }
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
-              ],
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _savePreferences,

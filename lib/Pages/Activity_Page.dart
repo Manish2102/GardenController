@@ -122,17 +122,15 @@ class ScheduledActivityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String frequencyText;
-
-    try {
-      frequencyText =
-          Frequency.values[activity.frequency].toString().split('.').last;
-    } catch (e) {
-      frequencyText = 'Unknown';
-    }
+    // Extracting start and end times as hours and minutes
+    final startTime =
+        TimeOfDay.fromDateTime(DateTime.parse(activity.selectedTime));
+    final endTime = TimeOfDay.fromDateTime(DateTime.parse(activity.selectedTime)
+        .add(Duration(minutes: activity.duration)));
 
     return Card(
       elevation: 5,
+      color: Colors.white70,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
         side: BorderSide(color: Colors.black),
@@ -143,20 +141,26 @@ class ScheduledActivityCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Channel: ${activity.channel}',
-              style: TextStyle(fontSize: 18),
+              'GC1: ${activity.channel}',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
             Text(
-              'Time: ${activity.selectedTime}',
-              style: TextStyle(fontSize: 18),
+              'Date: ${DateTime.parse(activity.selectedTime).toLocal().toString().split(' ')[0]}',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'Start Time: ${startTime.format(context)}',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              'End Time: ${endTime.format(context)}',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
             Text('Duration: ${activity.duration} minutes',
-                style: TextStyle(fontSize: 18)),
-            Text('Frequency: $frequencyText', style: TextStyle(fontSize: 18)),
-            if (activity.frequency == Frequency.SelectDays.index)
-              Text('Days: ${activity.selectedDays.join(', ')}',
-                  style: TextStyle(fontSize: 18)),
-            SizedBox(height: 10),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            Text('Days Selected: ${activity.selectedDays.join(', ')}',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+            SizedBox(height: 2),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -164,7 +168,7 @@ class ScheduledActivityCard extends StatelessWidget {
                   onPressed: onDelete,
                   icon: Icon(
                     Icons.delete_outline_sharp,
-                    size: 40,
+                    size: 30,
                     color: Colors.black,
                   ),
                 ),
@@ -176,5 +180,3 @@ class ScheduledActivityCard extends StatelessWidget {
     );
   }
 }
-
-enum Frequency { Daily, Weekly, BiWeekly, Monthly, SelectDays }
