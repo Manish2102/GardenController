@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:gardenmate/Pages/Scheduled_Activity.dart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
@@ -77,7 +77,7 @@ class _ActivityPageState extends State<ActivityPage> {
 
   Future<void> _deleteActivityFromServer(ScheduledActivity activity) async {
     final url = Uri.parse(
-        'http://192.168.1.10:5000/remove_schedule?start=startTime&end=endTime&days=${activity.selectedDays.join(',')}');
+        'http://192.168.1.10:5000/remove_schedule?start=${activity.selectedTime}&end=${_calculateEndTime(activity.selectedTime, activity.duration)}&days=${activity.selectedDays.join(',')}');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -94,6 +94,22 @@ class _ActivityPageState extends State<ActivityPage> {
         SnackBar(content: Text('Error: $e')),
       );
     }
+  }
+
+  String _calculateEndTime(String startTime, int duration) {
+    final TimeOfDay startTimeOfDay = TimeOfDay(
+      hour: int.parse(startTime.split(":")[0]),
+      minute: int.parse(startTime.split(":")[1]),
+    );
+
+    int endHour = startTimeOfDay.hour;
+    int endMinute = startTimeOfDay.minute + duration;
+    while (endMinute >= 60) {
+      endHour += 1;
+      endMinute -= 60;
+    }
+
+    return '${endHour.toString().padLeft(2, '0')}:${endMinute.toString().padLeft(2, '0')}';
   }
 
   void _deleteActivity(int index) async {
