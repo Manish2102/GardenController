@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -23,38 +25,49 @@ class _MonitorPageState extends State<MonitorPage> {
   Future<void> updateStatus() async {
     final serverIp =
         'http://192.168.1.10:5000'; // Replace with your actual server IP
-    final sensors = ['motor', 'rain', 'soil'];
 
     try {
-      for (var sensor in sensors) {
-        final response = await http.get(Uri.parse('$serverIp/$sensor/status'));
+      // Fetch motor status
+      final motorResponse = await http.get(Uri.parse('$serverIp/motor/status'));
+      if (motorResponse.statusCode == 200) {
+        final motorData = json.decode(motorResponse.body);
+        setState(() {
+          isMainMotorOn = motorData['status'] == 'ON';
+        });
+      } else {
+        print('Failed to fetch motor status: ${motorResponse.statusCode}');
+      }
 
-        if (response.statusCode == 200) {
-          final data = response.body;
-          switch (sensor) {
-            case 'motor':
-              setState(() {
-                isMainMotorOn = data == 'on';
-              });
-              break;
-            case 'rain':
-              setState(() {
-                isRaining = data == 'rainy';
-              });
-              break;
-            case 'soil':
-              setState(() {
-                soilMoisture = data;
-              });
-              break;
-          }
-        } else {
-          print('Failed to fetch $sensor status: ${response.statusCode}');
-        }
+      // Fetch rain status
+      final rainResponse = await http.get(Uri.parse('$serverIp/rain/status'));
+      if (rainResponse.statusCode == 200) {
+        final rainData = json.decode(rainResponse.body);
+        setState(() {
+          isRaining = rainData['status'] == 'Raining';
+        });
+      } else {
+        print('Failed to fetch rain status: ${rainResponse.statusCode}');
+      }
+
+      // Fetch soil moisture
+      final soilResponse = await http.get(Uri.parse('$serverIp/soil/status'));
+      if (soilResponse.statusCode == 200) {
+        final soilData = json.decode(soilResponse.body);
+        setState(() {
+          soilMoisture = soilData['status'];
+        });
+      } else {
+        print('Failed to fetch soil moisture: ${soilResponse.statusCode}');
       }
     } catch (error) {
       print('Error fetching sensor details: $error');
     }
+  }
+
+  // Function to handle refresh button pressed
+  Future<void> _handleRefresh() async {
+    await updateStatus();
+    // Optionally show a SnackBar or any UI indication of refresh completion
   }
 
   @override
@@ -64,6 +77,12 @@ class _MonitorPageState extends State<MonitorPage> {
         backgroundColor: Colors.green[200],
         title: Text('Monitor'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: _handleRefresh,
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),

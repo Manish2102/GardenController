@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -35,9 +36,9 @@ class _GC1PageState extends State<GC1Page> {
   @override
   void initState() {
     super.initState();
-    fetchMotorStatus();
-    fetchSensorData();
-    fetchSensorData1();
+    fetchMotorStatus(); // Fetch initial motor status from server
+    fetchSensorData(); // Fetch initial sensor data
+    fetchSensorData1(); // Fetch initial sensor data
     initializeNotifications();
   }
 
@@ -118,15 +119,6 @@ class _GC1PageState extends State<GC1Page> {
     }
   }
 
-  /*Future<Map<String, dynamic>> getSensorData() async {
-    final response = await http.get(Uri.parse('$esp32Url$sensorEndpoint'));
-    if (response.statusCode == 200) {
-      return Map<String, dynamic>.from(json.decode(response.body));
-    } else {
-      throw Exception('Failed to fetch sensor data: ${response.reasonPhrase}');
-    }
-  }*/
-
   Future<void> fetchSensorData1() async {
     try {
       final data = await getSensorData1();
@@ -149,15 +141,6 @@ class _GC1PageState extends State<GC1Page> {
       throw Exception('Failed to fetch motor status: ${response.reasonPhrase}');
     }
   }
-
-  /*Future<Map<String, dynamic>> getSensorData1() async {
-    final response = await http.get(Uri.parse('$esp32Url$sensorEndpoint1'));
-    if (response.statusCode == 200) {
-      return Map<String, dynamic>.from(json.decode(response.body));
-    } else {
-      throw Exception('Failed to fetch sensor data: ${response.reasonPhrase}');
-    }
-  }*/
 
   Future<void> controlMotor(String action) async {
     String url = '$esp32Url/motor/$action';
