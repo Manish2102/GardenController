@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:gardenmate/Pages/Home.dart';
 import 'package:gardenmate/Pages/Login_Page.dart';
 
@@ -13,24 +14,43 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Check if the user is logged in
-    Timer(Duration(seconds: 5), () {
-      User? user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        // User is signed in
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => ModelsPage()), // Replace with your homepage
-        );
-      } else {
-        // User is not signed in
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => LogIn()),
-        );
-      }
+    // Request permissions
+    requestPermissions().then((_) {
+      // Check if the user is logged in
+      Timer(Duration(seconds: 5), () {
+        User? user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          // User is signed in
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    ModelsPage()), // Replace with your homepage
+          );
+        } else {
+          // User is not signed in
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => LogIn()),
+          );
+        }
+      });
     });
+  }
+
+  Future<void> requestPermissions() async {
+    await [
+      Permission.location,
+      Permission.bluetooth,
+      Permission.bluetoothConnect,
+    ].request();
+
+    if (await Permission.location.isPermanentlyDenied ||
+        await Permission.bluetooth.isPermanentlyDenied ||
+        await Permission.bluetoothConnect.isPermanentlyDenied) {
+      // Open app settings to manually enable permissions
+      openAppSettings();
+    }
   }
 
   @override
