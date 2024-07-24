@@ -62,34 +62,50 @@ class _SignUpState extends State<SignUp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       body: SingleChildScrollView(
         child: Column(
           children: [
             SizedBox(
-              height: 50,
-            ),
-            Container(
-                width: MediaQuery.of(context).size.width,
-                child: Image.asset(
-                  "assets/Logo.png",
-                  fit: BoxFit.cover,
-                )),
-            SizedBox(
-              height: 30.0,
+              height: 160.0,
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 10.0, right: 10.0),
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Form(
                 key: _formkey,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    Center(
+                      child: Text(
+                        "Register",
+                        style: TextStyle(
+                          color: const Color.fromARGB(255, 0, 0, 0),
+                          fontSize: 24.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10.0),
+                    Center(
+                      child: Text(
+                        "Create a new account",
+                        style: TextStyle(
+                          color: const Color.fromARGB(255, 0, 0, 0)
+                              .withOpacity(0.8),
+                          fontSize: 16.0,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 20.0),
                     Container(
                       padding:
-                          EdgeInsets.symmetric(vertical: 1.0, horizontal: 30.0),
+                          EdgeInsets.symmetric(vertical: 5.0, horizontal: 20.0),
                       decoration: BoxDecoration(
-                          color: Color(0xFFedf0f8),
-                          borderRadius: BorderRadius.circular(30)),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(5),
+                        border: Border.all(color: Colors.black, width: 1.0),
+                      ),
                       child: TextFormField(
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -100,21 +116,22 @@ class _SignUpState extends State<SignUp> {
                         controller: namecontroller,
                         decoration: InputDecoration(
                             border: InputBorder.none,
-                            prefixIcon: Icon(Icons.person),
-                            hintText: "Name",
+                            hintText: "Username",
                             hintStyle: TextStyle(
                                 color: Color(0xFFb2b7bf), fontSize: 18.0)),
                       ),
                     ),
                     SizedBox(
-                      height: 30.0,
+                      height: 20.0,
                     ),
                     Container(
                       padding:
-                          EdgeInsets.symmetric(vertical: 2.0, horizontal: 30.0),
+                          EdgeInsets.symmetric(vertical: 5.0, horizontal: 20.0),
                       decoration: BoxDecoration(
-                          color: Color(0xFFedf0f8),
-                          borderRadius: BorderRadius.circular(30)),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(5),
+                        border: Border.all(color: Colors.black, width: 1.0),
+                      ),
                       child: TextFormField(
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -125,21 +142,22 @@ class _SignUpState extends State<SignUp> {
                         controller: mailcontroller,
                         decoration: InputDecoration(
                             border: InputBorder.none,
-                            prefixIcon: Icon(Icons.email),
                             hintText: "Email",
                             hintStyle: TextStyle(
                                 color: Color(0xFFb2b7bf), fontSize: 18.0)),
                       ),
                     ),
                     SizedBox(
-                      height: 30.0,
+                      height: 20.0,
                     ),
                     Container(
                       padding:
-                          EdgeInsets.symmetric(vertical: 2.0, horizontal: 30.0),
+                          EdgeInsets.symmetric(vertical: 5.0, horizontal: 20.0),
                       decoration: BoxDecoration(
-                          color: Color(0xFFedf0f8),
-                          borderRadius: BorderRadius.circular(30)),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(5),
+                        border: Border.all(color: Colors.black, width: 1.0),
+                      ),
                       child: TextFormField(
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -150,7 +168,6 @@ class _SignUpState extends State<SignUp> {
                         controller: passwordcontroller,
                         decoration: InputDecoration(
                             border: InputBorder.none,
-                            prefixIcon: Icon(Icons.lock),
                             hintText: "Password",
                             hintStyle: TextStyle(
                                 color: Color(0xFFb2b7bf), fontSize: 18.0)),
@@ -158,7 +175,7 @@ class _SignUpState extends State<SignUp> {
                       ),
                     ),
                     SizedBox(
-                      height: 30.0,
+                      height: 20.0,
                     ),
                     GestureDetector(
                       onTap: () {
@@ -174,10 +191,12 @@ class _SignUpState extends State<SignUp> {
                       child: Container(
                           width: MediaQuery.of(context).size.width,
                           padding: EdgeInsets.symmetric(
-                              vertical: 13.0, horizontal: 30.0),
+                              vertical: 13.0, horizontal: 20.0),
                           decoration: BoxDecoration(
-                              color: Color.fromARGB(255, 111, 131, 211),
-                              borderRadius: BorderRadius.circular(30)),
+                              color: Colors.blue,
+                              borderRadius: BorderRadius.circular(5),
+                              border:
+                                  Border.all(color: Colors.black, width: 1.0)),
                           child: Center(
                               child: Text(
                             "Register",
@@ -187,72 +206,40 @@ class _SignUpState extends State<SignUp> {
                                 fontWeight: FontWeight.w500),
                           ))),
                     ),
+                    SizedBox(height: 20.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("Already have an account?",
+                            style: TextStyle(
+                                color: Color.fromARGB(255, 0, 0, 0),
+                                fontSize: 18.0,
+                                fontWeight: FontWeight.w500)),
+                        SizedBox(
+                          width: 5.0,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => LogIn()));
+                          },
+                          child: Text(
+                            "LogIn",
+                            style: TextStyle(
+                                color: Colors.blue,
+                                fontSize: 20.0,
+                                fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
             ),
-            /*SizedBox(
-              height: 120.0,
-            ),
-            Text(
-              "----- or LogIn with -----",
-              style: TextStyle(
-                  color: Color(0xFF273671),
-                  fontSize: 12.0,
-                  fontWeight: FontWeight.w500),
-            ),
-            SizedBox(
-              height: 30.0,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  "assets/google.png",
-                  height: 30,
-                  width: 30,
-                  fit: BoxFit.cover,
-                ),
-                SizedBox(
-                  width: 30.0,
-                ),
-                Image.asset(
-                  "assets/apple1.png",
-                  height: 30,
-                  width: 30,
-                  fit: BoxFit.cover,
-                )
-              ],
-            ),*/
-            SizedBox(
-              height: 100.0,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("Already have an account?",
-                    style: TextStyle(
-                        color: Color(0xFF8c8e98),
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.w500)),
-                SizedBox(
-                  width: 5.0,
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => LogIn()));
-                  },
-                  child: Text(
-                    "LogIn",
-                    style: TextStyle(
-                        color: Color(0xFF273671),
-                        fontSize: 20.0,
-                        fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ],
-            )
+            SizedBox(height: 20.0),
           ],
         ),
       ),

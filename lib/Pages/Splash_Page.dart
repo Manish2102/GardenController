@@ -10,14 +10,29 @@ class SplashScreen extends StatefulWidget {
   _SplashScreenState createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<Color?> _colorTween;
+
   @override
   void initState() {
     super.initState();
-    // Request permissions
+
+    _controller = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
+
+    _colorTween = _controller.drive(
+      ColorTween(begin: Colors.white, end: Colors.green[100]),
+    );
+
+    _controller.repeat(reverse: true);
+
     requestPermissions().then((_) {
       // Check if the user is logged in
-      Timer(Duration(seconds: 5), () {
+      Timer(Duration(seconds: 2), () {
         User? user = FirebaseAuth.instance.currentUser;
         if (user != null) {
           // User is signed in
@@ -54,42 +69,58 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: <Widget>[
-          // Background image or color goes here
-          Center(
-            child: Image.asset(
-              "assets/Logo.png",
-              // Replace 'logo.png' with your app logo file path
-              // You can adjust the width and height properties as needed
-              width: 300,
-              height: 200,
+      body: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return Container(
+            color: _colorTween.value,
+            child: Stack(
+              fit: StackFit.expand,
+              children: <Widget>[
+                Center(
+                  child: Image.asset(
+                    "assets/Logo.png",
+                    width: 300,
+                    height: 200,
+                  ),
+                ),
+                // Loading indicator at the bottom
+                Positioned(
+                  bottom: 50.0,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.green,
+                    ),
+                  ),
+                ),
+                // Version number at the bottom
+                Positioned(
+                  bottom: 16.0,
+                  left: 0,
+                  right: 0,
+                  child: Text(
+                    'Version 1.0.0',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 20.0,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-          // Loading indicator
-          Center(
-            child: CircularProgressIndicator(
-              color: Colors.green,
-            ),
-          ),
-          // Version number at the bottom
-          Positioned(
-            bottom: 16.0,
-            left: 0,
-            right: 0,
-            child: Text(
-              'Version 1.0.0',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey,
-                fontSize: 20.0,
-              ),
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

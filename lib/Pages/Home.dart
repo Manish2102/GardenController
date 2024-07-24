@@ -6,11 +6,15 @@ import 'package:gardenmate/Bluetooth_Provisions/Provision_Page.dart';
 import 'package:gardenmate/Device_Screens/GC1Screen.dart';
 import 'package:gardenmate/Device_Screens/GC3S_Screen.dart';
 import 'package:gardenmate/Device_Screens/GC3_Screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:gardenmate/Pages/Login_Page.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ModelsPage extends StatefulWidget {
+  final String? successMessage;
+
+  ModelsPage({this.successMessage});
+
   @override
   _ModelsPageState createState() => _ModelsPageState();
 }
@@ -24,6 +28,20 @@ class _ModelsPageState extends State<ModelsPage> {
   void initState() {
     super.initState();
     currentUser = FirebaseAuth.instance.currentUser;
+
+    WidgetsBinding.instance?.addPostFrameCallback((_) {
+      if (widget.successMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(widget.successMessage!),
+          action: SnackBarAction(
+            label: 'Dismiss',
+            onPressed: () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            },
+          ),
+        ));
+      }
+    });
   }
 
   void showError(String message) {
@@ -135,7 +153,7 @@ class _ModelsPageState extends State<ModelsPage> {
             }),
             ListTile(
               title: Text(
-                'App Version: 1.0.0', // Replace with actual version
+                'App Version: 1.0.0',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
