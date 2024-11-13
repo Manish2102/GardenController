@@ -1,4 +1,4 @@
-#Garden Mate App 
+<h1 style="font-size:40px;">Garden Mate App</h1>
 
 Overview
 ----------------------------------------------------------------
