@@ -40,7 +40,7 @@ flutter pub get
 In the Flutter project directory, run:
 flutter run
 
-![SplashPage](assets/Splashpage.jpg)
+<!-- ![SplashPage](assets/Splashpage.jpg)
 ![Homepage](assets/Homepage.jpg)
 ![sidemenu](assets/sidemenu.jpg)
 ![BluetoothProvisionPage](assets/BluetoothProvisionpage.jpg)
@@ -48,7 +48,17 @@ flutter run
 ![configurepage](assets/configurepage.jpg)
 ![monitorpage](assets/monitor.jpg)
 ![activity page](assets/activitypage.jpg)
-![GC3page](assets/GC3page.jpg)
+![GC3page](assets/GC3page.jpg) -->
+
+<img src="assets/Splashpage.jpg" alt="SplashPage" width="300"/>
+<img src="assets/Homepage.jpg" alt="Homepage" width="300"/>
+<img src="assets/sidemenu.jpg" alt="Side Menu" width="300"/>
+<img src="assets/BluetoothProvisionpage.jpg" alt="Bluetooth Provision Page" width="300"/>
+<img src="assets/Mainpage.jpg" alt="Main Page" width="300"/>
+<img src="assets/configurepage.jpg" alt="Configure Page" width="300"/>
+<img src="assets/monitor.jpg" alt="Monitor Page" width="300"/>
+<img src="assets/activitypage.jpg" alt="Activity Page" width="300"/>
+<img src="assets/GC3page.jpg" alt="GC3 Page" width="300"/>
 
 
 Contributing
