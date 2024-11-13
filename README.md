@@ -28,17 +28,17 @@ Flask
 
 Steps to Install
 1. Clone the Repository:
-git clone https://github.com/Manish2102/GardenMate
-cd GardenMate
+* git clone https://github.com/Manish2102/GardenMate
+* cd GardenMate
 2. Install Flutter Dependencies:
 
 In the root of the Flutter project, run:
-flutter pub get
+* flutter pub get
 
 3. Run the Flutter App:
 
 In the Flutter project directory, run:
-flutter run
+* flutter run
 
 <!-- ![SplashPage](assets/Splashpage.jpg)
 ![Homepage](assets/Homepage.jpg)
