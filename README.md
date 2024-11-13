@@ -6,25 +6,25 @@ Garden Mate is a mobile application designed to help users manage and control th
 
 Features
 ----------------------------------------------------------------
-Motor Control: Control garden motors remotely.
-Scheduling: Set schedules to automate motor operations.
-Device Management: Manage various devices like lights, sprinklers, and motors.
-Notifications: Get notified about scheduled tasks and device status updates.
-User-Friendly Interface: Easy-to-use interface built with Flutter.
+* Motor Control: Control garden motors remotely.
+* Scheduling: Set schedules to automate motor operations.
+* Device Management: Manage various devices like lights, sprinklers, and motors.
+* Notifications: Get notified about scheduled tasks and device status updates.
+* User-Friendly Interface: Easy-to-use interface built with Flutter.
 
 Technologies Used
 ----------------------------------------------------------------
-Frontend: Flutter (Dart)
-Backend: Flask (Python)
-Database: Firebase 
+* Frontend: Flutter (Dart)
+* Backend: Flask (Python)
+* Database: Firebase 
 
 Installation
 ----------------------------------------------------------------
 Prerequisites
 
-Flutter SDK
-Python 3.x
-Flask
+* Flutter SDK
+* Python 3.x
+* Flask
 
 Steps to Install
 1. Clone the Repository:
@@ -63,9 +63,9 @@ In the Flutter project directory, run:
 
 Contributing
 ----------------------------------------------------------------
-Fork the repository.
-Create a new branch (git checkout -b feature-name).
-Make your changes.
-Commit your changes (git commit -am 'Add new feature').
-Push to the branch (git push origin feature-name).
-Create a new Pull Request.
+* Fork the repository.
+* Create a new branch (git checkout -b feature-name).
+* Make your changes.
+* Commit your changes (git commit -am 'Add new feature').
+* Push to the branch (git push origin feature-name).
+* Create a new Pull Request.
